@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, FlatList } from 'react-native';
+import { StyleSheet, FlatList, View } from 'react-native';
 import { Appbar, FAB, List, IconButton } from 'react-native-paper';
 import { useRoutines } from '@/context/RoutinesContext';
 import { router } from 'expo-router'; // We no longer need Href
@@ -27,7 +27,7 @@ export function RoutinesScreen() {
               router.push(`/routine/${item.id}`);
             }}
             right={() => (
-              <>
+              <View style={{ flexDirection: 'row' }}>
                 <IconButton
                   icon="pencil-outline"
                   onPress={() => {
@@ -38,7 +38,7 @@ export function RoutinesScreen() {
                   icon="delete-outline"
                   onPress={() => deleteRoutine(item.id)}
                 />
-              </>
+              </View>
             )}
           />
         )}

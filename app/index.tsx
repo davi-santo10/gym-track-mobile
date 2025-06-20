@@ -21,20 +21,19 @@ export default function MainNavigation() {
     { key: 'history', title: 'History', focusedIcon: 'history' },
   ]);
   
-  // Create a precise type for our route objects using TypeScript's `typeof` operator.
   type AppRoute = typeof routes[number];
 
-  // Replace `SceneMap` with our own function to take manual control.
+  // Wrap each screen in a View to absorb extra props from BottomNavigation
   const renderScene = ({ route }: { route: AppRoute }) => {
     switch (route.key) {
       case 'home':
-        return <HomeScreen />;
+        return <View style={{ flex: 1 }}><HomeScreen /></View>;
       case 'routines':
-        return <RoutinesScreen />;
+        return <View style={{ flex: 1 }}><RoutinesScreen /></View>;
       case 'exercises':
-        return <ExercisesScreen />;
+        return <View style={{ flex: 1 }}><ExercisesScreen /></View>;
       case 'history':
-        return <HistoryScreen />;
+        return <View style={{ flex: 1 }}><HistoryScreen /></View>;
       default:
         return null;
     }

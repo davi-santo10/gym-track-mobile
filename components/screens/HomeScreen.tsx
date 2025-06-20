@@ -27,7 +27,6 @@ export function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      {/* V V V THIS IS THE CORRECTED APPBAR IMPLEMENTATION V V V */}
       <Appbar.Header>
         <Appbar.Content
           title={
@@ -50,7 +49,7 @@ export function HomeScreen() {
         <Card style={styles.card}>
           <Card.Title title="Today's Plan" />
           {todaysRoutine ? (
-            <>
+            <View>
               <Card.Content>
                 <Text variant="titleMedium">{todaysRoutine.name}</Text>
                 <Text variant="bodyMedium">{todaysRoutine.exercises.length} exercises planned</Text>
@@ -64,7 +63,7 @@ export function HomeScreen() {
                   Start Workout
                 </Button>
               </Card.Actions>
-            </>
+            </View>
           ) : (
             <Card.Content>
               <Text variant="bodyMedium">
@@ -78,7 +77,7 @@ export function HomeScreen() {
             <Card.Title title="Last Time" subtitle={`Performance for ${todaysRoutine.name}`} />
             <Card.Content>
               {lastLogForTodaysRoutine ? (
-                <>
+                <View>
                   <Text variant="bodySmall">
                     {new Date(lastLogForTodaysRoutine.date).toLocaleDateString()}
                   </Text>
@@ -93,7 +92,7 @@ export function HomeScreen() {
                   {lastLogForTodaysRoutine.exercises.length > 3 && (
                      <Text style={{textAlign: 'center', marginVertical: 8}}>...</Text>
                   )}
-                </>
+                </View>
               ) : (
                 <Text variant="bodyMedium">
                   You haven't logged this workout before. Let's get it!
