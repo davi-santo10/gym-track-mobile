@@ -1,14 +1,16 @@
 import { useRoutines } from "@/context/RoutinesContext";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native";
 import { Card, FAB, IconButton, Text, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useActiveWorkout } from "@/context/ActiveWorkoutContext";
+import { useWorkoutLog } from "@/context/WorkoutLogContext";
 
 export default function ViewRoutineScreen() {
   const theme = useTheme();
   const { startWorkout } = useActiveWorkout()
+  const { logs } = useWorkoutLog()
   const navigation = useNavigation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { routines } = useRoutines();
@@ -31,6 +33,13 @@ export default function ViewRoutineScreen() {
       });
     }
   }, [routine, navigation]);
+  const handleStartWorkout = useCallback(() => {
+    if (!routine) return;
+    const lastWorkoutLog = logs.find(log => log.routineName === routine.name)
+
+    startWorkout(routine, lastWorkoutLog)
+    router.push(`/active-workout`)
+  }, [routine, logs, startWorkout, router])
 
   if (!routine) {
     return <ActivityIndicator style={{ flex: 1 }} />;
@@ -78,35 +87,29 @@ export default function ViewRoutineScreen() {
         icon="play"
         label="Start Workout"
         style={styles.fab}
-        onPress={() => {
-          if (routine) {
-            startWorkout(routine)
-            router.push(`/active-workout`)
-          }
-        }}
+        onPress={handleStartWorkout}
       />
     </SafeAreaView>
   );
 }
 
-// --- UPDATED STYLES ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
   listContent: {
     paddingHorizontal: 16,
-    paddingTop: 16, // Add padding at the top of the scrollable content
+    paddingTop: 16,
     paddingBottom: 100,
   },
   headerContainer: {
-    marginBottom: 24, // Space between the header and the first card
+    marginBottom: 24,
   },
   routineTitle: {
-    fontWeight: "bold", // Make the main title bold
+    fontWeight: "bold",
   },
   exercisesHeader: {
-    marginTop: 8, // A little space between the title and subtitle
+    marginTop: 8,
   },
   card: {
     marginBottom: 16,

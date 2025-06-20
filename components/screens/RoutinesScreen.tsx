@@ -21,7 +21,7 @@ export function RoutinesScreen() {
         renderItem={({ item }) => (
           <List.Item
             title={item.name}
-            description={`${item.exercises.length} exercises`}
+            description={`${item.exercises.length} exercises ${item.day ? `• ${item.day}` : ''}`}
             left={(props) => <List.Icon {...props} icon="clipboard-list-outline" />}
             onPress={() => {
               router.push(`/routine/${item.id}`);

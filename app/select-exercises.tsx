@@ -1,21 +1,80 @@
-import React, { useMemo, useState } from 'react';
-import { SectionList, StyleSheet, View, Keyboard } from 'react-native';
-import { Checkbox, List, Searchbar, useTheme, Text, FAB } from 'react-native-paper';
-import { useExercises } from '@/context/ExercisesContext';
-import { useRoutineBuilder } from '@/context/RoutineBuilderContext';
-import { router } from 'expo-router';
-import { ExerciseData } from '@/data/exercises';
+import { useExercises } from "@/context/ExercisesContext";
+import { useRoutineBuilder } from "@/context/RoutineBuilderContext";
+import { Exercise } from "@/context/RoutinesContext";
+import { ExerciseData } from "@/data/exercises";
+import { useNavigation } from "expo-router";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Keyboard, SectionList, StyleSheet, View } from "react-native";
+import {
+  Checkbox,
+  FAB,
+  IconButton,
+  List,
+  Searchbar,
+  Text,
+  useTheme,
+} from "react-native-paper";
 
 export default function SelectExercisesScreen() {
   const theme = useTheme();
+  const navigation = useNavigation();
   const { exercises: exerciseLibrary } = useExercises();
-  const { exercises: selectedExercises, addExercise, removeExercise } = useRoutineBuilder();
-  const [searchQuery, setSearchQuery] = useState('');
+  const { exercises: initialExercises, setBuilderExercises } =
+    useRoutineBuilder();
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const selectedIds = useMemo(() => new Set(selectedExercises.map(e => e.id)), [selectedExercises]);
+  const [localSelection, setLocalSelection] = useState(
+    () => new Set(initialExercises.map((e) => e.id))
+  );
+  const handleToggleExercise = (exercise: ExerciseData) => {
+    setLocalSelection((currentSelection) => {
+      const newSelection = new Set(currentSelection);
+      if (newSelection.has(exercise.id)) {
+        newSelection.delete(exercise.id);
+      } else {
+        newSelection.add(exercise.id);
+      }
+      return newSelection;
+    });
+  };
+
+  const handleConfirm = useCallback(() => {
+    const newExercises: Exercise[] = [];
+    exerciseLibrary.forEach((exercise) => {
+      if (localSelection.has(exercise.id)) {
+        const existingExercise = initialExercises.find(
+          (ex) => ex.id === exercise.id
+        );
+        if (existingExercise) {
+          newExercises.push(existingExercise);
+        } else {
+          newExercises.push({ ...exercise, sets: "3", reps: "10" });
+        }
+      }
+    });
+
+    setBuilderExercises(newExercises);
+    navigation.goBack();
+  }, [
+    localSelection,
+    exerciseLibrary,
+    initialExercises,
+    setBuilderExercises,
+    navigation,
+  ]);
+
+  const handleCancel = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => <IconButton icon="close" onPress={handleCancel} />,
+    });
+  }, [navigation, handleConfirm, handleCancel]);
 
   const sections = useMemo(() => {
-    const filtered = exerciseLibrary.filter(exercise =>
+    const filtered = exerciseLibrary.filter((exercise) =>
       exercise.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
     const grouped = filtered.reduce((acc, exercise) => {
@@ -24,15 +83,16 @@ export default function SelectExercisesScreen() {
       acc[group].push(exercise);
       return acc;
     }, {} as Record<string, ExerciseData[]>);
-    return Object.keys(grouped).map(muscleGroup => ({
+    return Object.keys(grouped).map((muscleGroup) => ({
       title: muscleGroup,
       data: grouped[muscleGroup],
     }));
   }, [exerciseLibrary, searchQuery]);
 
   return (
-    // The entire screen is now just the content, the header is handled by the layout file.
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <SectionList
         sections={sections}
         keyExtractor={(item, index) => item.id + index}
@@ -56,17 +116,17 @@ export default function SelectExercisesScreen() {
           </Text>
         )}
         renderItem={({ item }) => {
-          const isSelected = selectedIds.has(item.id);
+          const isSelected = localSelection.has(item.id);
           return (
             <List.Item
               title={item.name}
               description={item.muscleGroup}
               titleStyle={{ color: theme.colors.onSurface }}
               descriptionStyle={{ color: theme.colors.onSurfaceVariant }}
-              onPress={() => {
-                isSelected ? removeExercise(item.id) : addExercise(item);
-              }}
-              right={() => <Checkbox status={isSelected ? 'checked' : 'unchecked'} />}
+              onPress={() => handleToggleExercise(item)}
+              right={() => (
+                <Checkbox status={isSelected ? "checked" : "unchecked"} />
+              )}
             />
           );
         }}
@@ -77,10 +137,10 @@ export default function SelectExercisesScreen() {
         )}
       />
       <FAB
-        icon="plus"
-        label="Create New"
+        icon="check"
+        label="Add Exercises"
         style={styles.fab}
-        onPress={() => router.push('/add-exercise')}
+        onPress={handleConfirm}
       />
     </View>
   );
@@ -99,18 +159,18 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sectionHeader: {
-    fontWeight: 'bold',
-    backgroundColor: 'transparent',
+    fontWeight: "bold",
+    backgroundColor: "transparent",
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
   },
   emptyContainer: {
     marginTop: 50,
-    alignItems: 'center',
+    alignItems: "center",
   },
   fab: {
-    position: 'absolute',
+    position: "absolute",
     margin: 16,
     right: 0,
     bottom: 16,

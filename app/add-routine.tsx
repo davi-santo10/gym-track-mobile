@@ -1,41 +1,71 @@
-import { router, useFocusEffect } from 'expo-router';
-import React, { useState, useMemo, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import { useRoutineBuilder } from "@/context/RoutineBuilderContext";
+import { DayOfWeek, useRoutines } from "@/context/RoutinesContext";
+import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  View,
+  Dimensions,
+} from "react-native";
 import {
   Button,
+  Chip,
+  IconButton,
+  Text,
   TextInput,
   useTheme,
-  IconButton,
-  Modal,
-  Portal,
-  Appbar,
-  Searchbar,
-  List,
-  Text,
-} from 'react-native-paper';
-import { useRoutines } from '@/context/RoutinesContext';
-import { useRoutineBuilder } from '@/context/RoutineBuilderContext';
-import { SafeAreaView } from 'react-native-safe-area-context';
+} from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+const days: DayOfWeek[] = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+const PADDING_HORIZONTAL = 16;
+const GAP = 8;
+const CHIPS_PER_ROW = 4;
+const screenWidth = Dimensions.get('window').width;
+const totalGapSize = (CHIPS_PER_ROW - 1) * GAP;
+const availableWidth = screenWidth - (PADDING_HORIZONTAL * 2);
+const chipWidth = (availableWidth - totalGapSize) / CHIPS_PER_ROW;
 
 export default function AddRoutineScreen() {
   const theme = useTheme();
   const { addRoutine } = useRoutines();
 
   const {
-    routineName, setRoutineName, exercises, updateSets, updateReps,
-    removeExercise, startBuilding, clearBuilder
+    routineName,
+    setRoutineName,
+    exercises,
+    updateSets,
+    updateReps,
+    removeExercise,
+    startBuilding,
+    clearBuilder,
   } = useRoutineBuilder();
+
+  const [selectedDay, setSelectedDay] = useState<DayOfWeek | undefined>();
 
   useEffect(() => {
     startBuilding();
     return () => {
-      clearBuilder
-    }
-  }, [])
+      clearBuilder;
+    };
+  }, []);
 
   const handleSave = () => {
-    if (!routineName.trim() || exercises.length === 0) { return; }
-    addRoutine(routineName, exercises);
+    if (!routineName.trim() || exercises.length === 0) {
+      return;
+    }
+    addRoutine(routineName, exercises, selectedDay);
     router.back();
   };
 
@@ -54,7 +84,36 @@ export default function AddRoutineScreen() {
             mode="outlined"
             style={styles.input}
           />
-          <Text variant="titleLarge" style={styles.title}>Exercises</Text>
+          
+          <Text variant="titleLarge" style={styles.title}>Assign to a day (optional)</Text>
+          <View style={styles.chipContainer}>
+            {days.map(day => {
+              const isSelected = selectedDay === day;
+              
+              return (
+                <Chip
+                  key={day}
+                  // 1. Set the mode dynamically
+                  mode={isSelected ? 'flat' : 'outlined'}
+                  style={[
+                    styles.chip,
+                    // 2. Only apply a background color when selected
+                    isSelected && { backgroundColor: theme.colors.primaryContainer }
+                  ]}
+                  textStyle={{
+                    // 3. Ensure text color has good contrast in both states
+                    color: isSelected ? theme.colors.onPrimaryContainer : theme.colors.onSurface
+                  }}
+                  onPress={() => setSelectedDay(currentDay => currentDay === day ? undefined : day)}
+                >
+                  {day}
+                </Chip>
+              );
+            })}
+          </View>
+          
+          <Text variant="titleLarge" style={styles.exercisesTitle}>Exercises</Text>
+          
           {exercises.map(exercise => (
             <View key={exercise.id} style={styles.exerciseContainer}>
               <Text variant="titleMedium">{exercise.name}</Text>
@@ -99,11 +158,26 @@ export default function AddRoutineScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  modalContainer: { flex: 1 },
-  modalContent: { flex: 1 },
-  scrollContent: { padding: 16, paddingBottom: 24 },
-  input: { marginBottom: 24 },
-  title: { marginBottom: 16 },
+  scrollContent: { 
+    paddingHorizontal: PADDING_HORIZONTAL,
+    paddingVertical: 16, 
+    paddingBottom: 24,
+  },
+  input: { marginBottom: 16 },
+  title: { marginBottom: 12 },
+  chipContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: GAP,
+    marginBottom: 24,
+  },
+  chip: {
+    width: chipWidth,
+    justifyContent: 'center',
+  },
+  exercisesTitle: {
+    marginBottom: 16,
+  },
   exerciseContainer: {
     marginBottom: 20,
     padding: 16,
@@ -116,5 +190,5 @@ const styles = StyleSheet.create({
   repsInput: { flex: 1, marginHorizontal: 8 },
   deleteButton: { margin: 0 },
   addExerciseButton: { marginTop: 8, alignSelf: 'flex-start' },
-  saveButton: { margin: 16, marginTop: 8, paddingVertical: 8 },
+  saveButton: { marginHorizontal: 16, marginVertical: 8, paddingVertical: 8 },
 });

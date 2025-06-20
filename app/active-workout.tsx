@@ -1,6 +1,5 @@
-// In app/active-workout.tsx
-
 import { useActiveWorkout } from "@/context/ActiveWorkoutContext";
+import { useWorkoutLog } from "@/context/WorkoutLogContext";
 import { router, useNavigation } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { FlatList, Keyboard, StyleSheet, View } from "react-native";
@@ -28,7 +27,9 @@ export default function ActiveWorkoutScreen() {
   const navigation = useNavigation();
   const { activeWorkout, exerciseProgress, updateSetProgress, finishWorkout } =
     useActiveWorkout();
+  const { addWorkoutLog } = useWorkoutLog();
   const [elapsedTime, setElapsedTime] = useState("00:00");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!activeWorkout) return;
@@ -46,8 +47,26 @@ export default function ActiveWorkoutScreen() {
   }, [activeWorkout, navigation]);
 
   const handleFinishWorkout = () => {
+    if (!activeWorkout) return;
+
+    const logData = {
+      routineName: activeWorkout.routine.name,
+      duration: Date.now() - activeWorkout.startTime,
+      exercises: activeWorkout.routine.exercises.map((exercise) => ({
+        details: exercise,
+        progress: exerciseProgress[exercise.id] || [],
+      })),
+    };
+
+    addWorkoutLog(logData);
     finishWorkout();
     router.back();
+  };
+
+  const handleAccordionPress = (exerciseId: string) => {
+    setExpandedId((currentId) =>
+      currentId === exerciseId ? null : exerciseId
+    );
   };
 
   if (!activeWorkout) {
@@ -72,6 +91,10 @@ export default function ActiveWorkoutScreen() {
         renderItem={({ item }) => {
           const progress = exerciseProgress[item.id] || [];
           const isExerciseComplete = progress.every((set) => set.completed);
+          const previousExerciseLog =
+            activeWorkout?.previousLog?.exercises.find(
+              (e) => e.details.name === item.name
+            );
 
           return (
             <List.Accordion
@@ -89,6 +112,8 @@ export default function ActiveWorkoutScreen() {
                   status={isExerciseComplete ? "checked" : "unchecked"}
                 />
               )}
+              expanded={expandedId === item.id}
+              onPress={() => handleAccordionPress(item.id)}
             >
               <View style={styles.detailsContainer}>
                 <View style={styles.setRow}>
@@ -104,47 +129,58 @@ export default function ActiveWorkoutScreen() {
                   </Text>
                 </View>
 
-                {progress.map((setProgress, setIndex) => (
-                  <View key={setIndex} style={styles.setRow}>
-                    <Text style={[styles.cellText, styles.setColumn]}>
-                      {setIndex + 1}
-                    </Text>
-                    <TextInput
-                      style={styles.repsColumn}
-                      value={setProgress.reps}
-                      onChangeText={(text) =>
-                        updateSetProgress(item.id, setIndex, { reps: text })
-                      }
-                      keyboardType="numeric"
-                      mode="outlined"
-                      dense
-                      disabled={setProgress.completed}
-                    />
-                    <TextInput
-                      style={styles.weightColumn}
-                      value={setProgress.weight}
-                      keyboardType="numeric"
-                      onChangeText={(text) =>
-                        updateSetProgress(item.id, setIndex, { weight: text })
-                      }
-                      mode="outlined"
-                      dense
-                      disabled={setProgress.completed}
-                    />
-                    <View style={[styles.statusColumn, styles.statusCell]}>
-                      <Checkbox.Android
-                        color={theme.colors.primary} // Color when checked
-                        uncheckedColor={theme.colors.onSurfaceVariant}
-                        status={setProgress.completed ? "checked" : "unchecked"}
-                        onPress={() =>
-                          updateSetProgress(item.id, setIndex, {
-                            completed: !setProgress.completed,
-                          })
+                {progress.map((setProgress, setIndex) => {
+                  // Find the historical data for this specific set
+                  const previousSet = previousExerciseLog?.progress[setIndex];
+
+                  return (
+                    <View key={setIndex} style={styles.setRow}>
+                      <Text style={[styles.cellText, styles.setColumn]}>
+                        {setIndex + 1}
+                      </Text>
+                      <TextInput
+                        style={styles.repsColumn}
+                        value={setProgress.reps}
+                        placeholder={previousSet ? `${previousSet.reps}` : ""} // Placeholder for Reps
+                        onChangeText={(text) =>
+                          updateSetProgress(item.id, setIndex, { reps: text })
                         }
+                        keyboardType="numeric"
+                        mode="outlined"
+                        dense
+                        disabled={setProgress.completed}
                       />
+                      <TextInput
+                        style={styles.weightColumn}
+                        value={setProgress.weight}
+                        placeholder={
+                          previousSet ? `${previousSet.weight}kg` : ""
+                        }
+                        keyboardType="numeric"
+                        onChangeText={(text) =>
+                          updateSetProgress(item.id, setIndex, { weight: text })
+                        }
+                        mode="outlined"
+                        dense
+                        disabled={setProgress.completed}
+                      />
+                      <View style={[styles.statusColumn, styles.statusCell]}>
+                        <Checkbox.Android
+                          color={theme.colors.primary} // Color when checked
+                          uncheckedColor={theme.colors.onSurfaceVariant}
+                          status={
+                            setProgress.completed ? "checked" : "unchecked"
+                          }
+                          onPress={() =>
+                            updateSetProgress(item.id, setIndex, {
+                              completed: !setProgress.completed,
+                            })
+                          }
+                        />
+                      </View>
                     </View>
-                  </View>
-                ))}
+                  );
+                })}
               </View>
             </List.Accordion>
           );
@@ -192,7 +228,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  // FIX #2: A new style specifically for the text inside cells
   cellText: {
     textAlign: "center",
   },
@@ -200,7 +235,6 @@ const styles = StyleSheet.create({
   repsColumn: { width: "20%", textAlign: "center" },
   weightColumn: { width: "35%" },
   statusColumn: { width: "20%" },
-  // FIX #2: This style is for the View holding the checkbox
   statusCell: {
     alignItems: "center",
     justifyContent: "center",
@@ -213,7 +247,6 @@ const styles = StyleSheet.create({
   buttonContent: {
     paddingVertical: 8,
   },
-  // FIX #1: Added the missing style definitions
   emptyContainer: {
     flex: 1,
     alignItems: "center",

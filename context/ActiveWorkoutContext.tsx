@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { Routine, Exercise } from './RoutinesContext';
+import { WorkoutLog } from './WorkoutLogContext';
+
 
 export interface SetProgress {
   reps: string;
@@ -11,14 +13,14 @@ export type ExerciseProgress = Record<string, SetProgress[]>;
 export interface ActiveWorkout {
   routine: Routine;
   startTime: number;
+  previousLog?: WorkoutLog;
 }
 
 interface ActiveWorkoutContextType {
   activeWorkout: ActiveWorkout | null;
   exerciseProgress: ExerciseProgress;
-  startWorkout: (routine: Routine) => void;
+  startWorkout: (routine: Routine, previousLog?: WorkoutLog) => void;
   finishWorkout: () => void;
-
   updateSetProgress: (exerciseId: string, setIndex: number, newProgress: Partial<SetProgress>) => void;
 }
 
@@ -28,13 +30,12 @@ export const ActiveWorkoutProvider = ({ children }: { children: ReactNode }) => 
   const [activeWorkout, setActiveWorkout] = useState<ActiveWorkout | null>(null);
   const [exerciseProgress, setExerciseProgress] = useState<ExerciseProgress>({});
 
-  const startWorkout = useCallback((routine: Routine) => {
-    const newWorkout: ActiveWorkout = { routine, startTime: Date.now() };
+  const startWorkout = useCallback((routine: Routine, previousLog?: WorkoutLog) => {
+    const newWorkout: ActiveWorkout = { routine, startTime: Date.now(), previousLog };
     setActiveWorkout(newWorkout);
 
 
     const initialProgress = routine.exercises.reduce((acc, exercise) => {
-
       acc[exercise.id] = Array.from({ length: parseInt(exercise.sets, 10) || 0 }).map(() => ({
         reps: exercise.reps, 
         weight: '',       

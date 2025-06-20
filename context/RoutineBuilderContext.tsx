@@ -14,6 +14,7 @@ interface RoutineBuilderContextType {
   updateReps: (exerciseId: string, reps: string) => void;
   startBuilding: (initialRoutine?: { name: string; exercises: Exercise[] }) => void;
   clearBuilder: () => void;
+  setBuilderExercises: (exercises: Exercise[]) => void
 }
 
 const RoutineBuilderContext = createContext<RoutineBuilderContextType>({} as any);
@@ -52,9 +53,13 @@ export const RoutineBuilderProvider = ({ children }: { children: ReactNode }) =>
     setExercises([]);
   }, []);
 
+  const setBuilderExercises = useCallback((newExercises: Exercise[]) => {
+    setExercises(newExercises)
+  }, []) 
+
   const value = {
     routineName, setRoutineName, exercises, addExercise, removeExercise,
-    updateSets, updateReps, startBuilding, clearBuilder
+    updateSets, updateReps, startBuilding, clearBuilder, setBuilderExercises
   };
 
   return <RoutineBuilderContext.Provider value={value}>{children}</RoutineBuilderContext.Provider>;

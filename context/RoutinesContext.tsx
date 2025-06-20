@@ -9,6 +9,8 @@ import React, {
 } from "react";
 import { MuscleGroup } from "@/data/exercises";
 
+export type DayOfWeek = 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
+
 export interface Exercise {
   id: string;
   name: string;
@@ -23,11 +25,12 @@ export interface Routine {
   id: string;
   name: string;
   exercises: Exercise[];
+  day?: DayOfWeek;
 }
 
 interface RoutinesContextType {
   routines: Routine[];
-  addRoutine: (name: string, exercises: Omit<Exercise, "id">[]) => void;
+  addRoutine: (name: string, exercises: Omit<Exercise, "id">[], day?: DayOfWeek) => void;
   editRoutine: (name: string, updatedData: Omit<Routine, "id">) => void;
   deleteRoutine: (routineId: string) => void;
 }
@@ -68,10 +71,11 @@ export const RoutinesProvider = ({ children }: { children: ReactNode }) => {
   }, [routines, isDataLoaded]);
 
   const addRoutine = useCallback(
-    (name: string, exercises: Omit<Exercise, "id">[]) => {
+    (name: string, exercises: Omit<Exercise, "id">[], day?: DayOfWeek) => {
       const newRoutine: Routine = {
         id: Date.now().toString(),
         name: name,
+        day: day,
         exercises: exercises.map((ex, index) => ({
           ...ex,
           id: `ex-${Date.now()}-${index}`,

@@ -16,8 +16,10 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "backgroundColor": "#ffffff",
       "edgeToEdgeEnabled": true,
-      "softwareKeyboardLayoutMode": "pan"
+      "softwareKeyboardLayoutMode": "pan",
+      "package": "com.espiritosanto.gymtrackmobile"
     },
     "web": {
       "bundler": "metro",
@@ -32,12 +34,19 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#ffffff",
+          "backgroundColorDark": "#1C1B1F"
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "4fdadfdb-e9a0-4887-b577-943862d92daf"
+      }
     }
   }
 }

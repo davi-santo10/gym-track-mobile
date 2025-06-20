@@ -1,5 +1,5 @@
 import { useExercises } from "@/context/ExercisesContext";
-import { ExerciseData, MuscleGroup} from "@/data/exercises";
+import { ExerciseData, MuscleGroup } from "@/data/exercises";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
@@ -17,6 +17,7 @@ const muscleGroupOptions: ExerciseData["muscleGroup"][] = [
   "Quadriceps",
   "Hamstrings",
   "Calves",
+  "Cardio"
 ];
 
 export default function AddExerciseScreen() {
@@ -24,7 +25,7 @@ export default function AddExerciseScreen() {
   const { addCustomExercise } = useExercises();
 
   const [name, setName] = useState("");
-  const [muscleGroup, setMuscleGroup] = useState<MuscleGroup>();;
+  const [muscleGroup, setMuscleGroup] = useState<MuscleGroup>();
 
   const handleSave = () => {
     if (!name.trim() || !muscleGroup) {
@@ -51,14 +52,12 @@ export default function AddExerciseScreen() {
           Muscle Group
         </Text>
 
-        {/* --- THIS IS THE NEW GRID LAYOUT --- */}
         <View style={styles.chipContainer}>
           {muscleGroupOptions.map((group) => (
             <Chip
               key={group}
-              mode="outlined" // Use outlined style for a cleaner look
+              mode="outlined"
               style={styles.chip}
-              // The `selected` prop visually highlights the active chip
               selected={muscleGroup === group}
               onPress={() => setMuscleGroup(group)}
             >
