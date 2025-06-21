@@ -74,8 +74,6 @@ export function ExercisesScreen() {
             </Text>
           </View>
         )}
-        
-        // This renders if the list is empty
         ListEmptyComponent={() => (
             <View style={styles.emptyContainer}>
                 <Text variant='bodyMedium'>No exercises found.</Text>

@@ -23,7 +23,6 @@ import {
 } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -68,7 +67,7 @@ export default function RootLayout() {
                   >
                     <Stack.Screen
                       name="index"
-                      options={{ headerShown: false }}
+                      options={{ headerShown: false, animation: 'slide_from_left' }}
                     />
                     <Stack.Screen
                       name="add-routine"
@@ -148,7 +147,6 @@ export default function RootLayout() {
                       name="active-workout"
                       options={{
                         title: "Active Workout",
-                        // We keep the custom back button for consistency
                         headerLeft: (props) => (
                           <IconButton
                             icon="arrow-left"

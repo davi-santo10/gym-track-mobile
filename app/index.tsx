@@ -1,5 +1,3 @@
-// In app/index.tsx
-
 import { HomeScreen } from '@/components/screens/HomeScreen';
 import { ExercisesScreen } from '@/components/screens/ExerciseScreen';
 import { RoutinesScreen } from '@/components/screens/RoutinesScreen';
@@ -23,7 +21,6 @@ export default function MainNavigation() {
   
   type AppRoute = typeof routes[number];
 
-  // Wrap each screen in a View to absorb extra props from BottomNavigation
   const renderScene = ({ route }: { route: AppRoute }) => {
     switch (route.key) {
       case 'home':

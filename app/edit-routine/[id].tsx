@@ -1,5 +1,3 @@
-// In app/edit-routine/[id].tsx
-
 import { useRoutineBuilder } from "@/context/RoutineBuilderContext";
 import { DayOfWeek, useRoutines } from "@/context/RoutinesContext";
 import { router, useLocalSearchParams } from "expo-router";

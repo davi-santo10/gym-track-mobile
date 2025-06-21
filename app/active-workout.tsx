@@ -27,7 +27,8 @@ export default function ActiveWorkoutScreen() {
   const navigation = useNavigation();
   const { activeWorkout, exerciseProgress, updateSetProgress, finishWorkout } =
     useActiveWorkout();
-  const { addWorkoutLog } = useWorkoutLog();
+
+  const { addWorkoutLog, setLastWorkoutSummary } = useWorkoutLog();
   const [elapsedTime, setElapsedTime] = useState("00:00");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -45,11 +46,29 @@ export default function ActiveWorkoutScreen() {
       navigation.setOptions({ title: activeWorkout.routine.name });
     }
   }, [activeWorkout, navigation]);
-
+  
   const handleFinishWorkout = () => {
     if (!activeWorkout) return;
 
+    const logId = `log-${Date.now()}`
+
+    const totalWeightLifted = Object.values(exerciseProgress).reduce((total, sets) => {
+      const exerciseWeight = sets.reduce((exerciseTotal, set) => {
+        if(set.completed && set.weight && set.reps) {
+          return exerciseTotal + (parseInt(set.weight, 10) * parseInt(set.reps, 10))
+        }
+        return exerciseTotal
+      }, 0)
+      return total + exerciseWeight
+    }, 0)
+
+    const workoutDuration = Date.now() - activeWorkout.startTime;
+
+    setLastWorkoutSummary({ id:logId, duration: workoutDuration, totalWeight: totalWeightLifted})
+    
+
     const logData = {
+      id: logId,
       routineName: activeWorkout.routine.name,
       duration: Date.now() - activeWorkout.startTime,
       exercises: activeWorkout.routine.exercises.map((exercise) => ({
@@ -60,7 +79,7 @@ export default function ActiveWorkoutScreen() {
 
     addWorkoutLog(logData);
     finishWorkout();
-    router.back();
+    router.replace('/')
   };
 
   const handleAccordionPress = (exerciseId: string) => {
@@ -130,7 +149,6 @@ export default function ActiveWorkoutScreen() {
                 </View>
 
                 {progress.map((setProgress, setIndex) => {
-                  // Find the historical data for this specific set
                   const previousSet = previousExerciseLog?.progress[setIndex];
 
                   return (
@@ -141,7 +159,7 @@ export default function ActiveWorkoutScreen() {
                       <TextInput
                         style={styles.repsColumn}
                         value={setProgress.reps}
-                        placeholder={previousSet ? `${previousSet.reps}` : ""} // Placeholder for Reps
+                        placeholder={previousSet ? `${previousSet.reps}` : ""}
                         onChangeText={(text) =>
                           updateSetProgress(item.id, setIndex, { reps: text })
                         }
@@ -166,7 +184,7 @@ export default function ActiveWorkoutScreen() {
                       />
                       <View style={[styles.statusColumn, styles.statusCell]}>
                         <Checkbox.Android
-                          color={theme.colors.primary} // Color when checked
+                          color={theme.colors.primary}
                           uncheckedColor={theme.colors.onSurfaceVariant}
                           status={
                             setProgress.completed ? "checked" : "unchecked"

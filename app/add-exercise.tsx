@@ -94,14 +94,12 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 24,
   },
-  // --- NEW STYLES FOR THE CHIP GRID ---
   chipContainer: {
-    flexDirection: "row", // Arrange items horizontally
-    flexWrap: "wrap", // Allow items to wrap to the next line
-    gap: 8, // Add a gap between chips
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8, 
   },
   chip: {
-    // Chips will size themselves based on their content
   },
   buttonContainer: {
     padding: 16,

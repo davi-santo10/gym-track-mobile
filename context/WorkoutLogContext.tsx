@@ -14,8 +14,16 @@ export interface WorkoutLog {
 	}>
 }
 
+export interface WorkoutSummary {
+	id: string;
+	duration: number;
+	totalWeight: number;
+}
+
 interface WorkoutLogContextType {
 	logs: WorkoutLog[]
+	lastWorkoutSummary: WorkoutSummary | null;
+	setLastWorkoutSummary: (summary: WorkoutSummary | null) => void;
 	addWorkoutLog: (log: Omit<WorkoutLog, 'id' | 'date'>) => void
 	deleteWorkoutLog: (logId: string) => void
 	clearAllLogs: () => void
@@ -26,6 +34,7 @@ const LOGS_STORAGE_KEY = 'my-gym-tracker-workout-logs'
 
 export const WorkoutLogProvider = ({ children } : { children: ReactNode }) => {
 	const [logs, setLogs] = useState<WorkoutLog[]>([])
+	const [ lastWorkoutSummary, setLastWorkoutSummary] = useState<WorkoutSummary | null>(null)
 	const [isDataLoaded, setIsDataLoaded] = useState(false)
 
 	useEffect(() => {
@@ -79,7 +88,7 @@ export const WorkoutLogProvider = ({ children } : { children: ReactNode }) => {
 		}
 	}, [])
 
-	const value = { logs, addWorkoutLog,deleteWorkoutLog, clearAllLogs }
+	const value = { logs, addWorkoutLog,deleteWorkoutLog, clearAllLogs, lastWorkoutSummary, setLastWorkoutSummary }
 
 	return (
 		<WorkoutLogContext.Provider value={value}>

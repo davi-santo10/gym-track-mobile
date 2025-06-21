@@ -93,15 +93,12 @@ export default function AddRoutineScreen() {
               return (
                 <Chip
                   key={day}
-                  // 1. Set the mode dynamically
                   mode={isSelected ? 'flat' : 'outlined'}
                   style={[
                     styles.chip,
-                    // 2. Only apply a background color when selected
                     isSelected && { backgroundColor: theme.colors.primaryContainer }
                   ]}
                   textStyle={{
-                    // 3. Ensure text color has good contrast in both states
                     color: isSelected ? theme.colors.onPrimaryContainer : theme.colors.onSurface
                   }}
                   onPress={() => setSelectedDay(currentDay => currentDay === day ? undefined : day)}

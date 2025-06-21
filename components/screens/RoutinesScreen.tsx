@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, FlatList, View } from 'react-native';
 import { Appbar, FAB, List, IconButton } from 'react-native-paper';
 import { useRoutines } from '@/context/RoutinesContext';
-import { router } from 'expo-router'; // We no longer need Href
+import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export function RoutinesScreen() {
