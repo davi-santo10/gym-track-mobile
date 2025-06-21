@@ -48,12 +48,11 @@ export const ExercisesProvider = ({ children }: { children: ReactNode }) => {
     saveExercises();
   }, [exercises, isDataLoaded]);
 
-  const addCustomExercise = useCallback((name: string, muscleGroup: ExerciseData['muscleGroup'], exerciseType:string) => {
+  const addCustomExercise = useCallback((name: string, muscleGroup: ExerciseData['muscleGroup']) => {
     const newExercise: ExerciseData = {
       id: `custom-${Date.now()}`,
       name,
       muscleGroup,
-      exerciseType,
     };
     setExercises(currentExercises => [...currentExercises, newExercise]);
   }, []);

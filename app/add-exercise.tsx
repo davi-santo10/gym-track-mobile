@@ -17,7 +17,6 @@ const muscleGroupOptions: ExerciseData["muscleGroup"][] = [
   "Quadriceps",
   "Hamstrings",
   "Calves",
-  "Cardio"
 ];
 
 export default function AddExerciseScreen() {

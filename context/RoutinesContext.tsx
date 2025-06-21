@@ -11,26 +11,15 @@ import { MuscleGroup } from "@/data/exercises";
 
 export type DayOfWeek = 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
 
-interface ExerciseBase {
+export interface Exercise {
   id: string;
   name: string;
   muscleGroup: MuscleGroup;
+  sets: string;
+  reps: string;
   restTime?: number;
   imageUrl?: string;
 }
-
-interface StrengthExercise extends ExerciseBase {
-    exerciseType: 'strength';
-    sets: string;
-    reps: string;
-}
-
-interface CardioExercise extends ExerciseBase {
-    exerciseType: 'cardio';
-    duration: string;
-}
-
-export type Exercise = StrengthExercise | CardioExercise;
 
 export interface Routine {
   id: string;
