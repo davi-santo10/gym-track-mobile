@@ -1,11 +1,13 @@
 import { HomeScreen } from '@/components/screens/HomeScreen';
 import { ExercisesScreen } from '@/components/screens/ExerciseScreen';
 import { RoutinesScreen } from '@/components/screens/RoutinesScreen';
-import { HistoryScreen } from '@/components/screens/HistoryScreen';
+import { DashboardScreen } from '@/components/screens/DashboardScreen'; // Import Dashboard
+import { SettingsScreen } from '@/components/screens/SettingsScreen';   // Import Settings
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { BottomNavigation, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import i18n from '@/lib/i18n';
 
 export default function MainNavigation() {
   const [index, setIndex] = useState(0);
@@ -13,10 +15,11 @@ export default function MainNavigation() {
   const theme = useTheme();
 
   const [routes] = useState([
-    { key: 'home', title: 'Home', focusedIcon: 'home', unfocusedIcon: 'home-outline'},
-    { key: 'routines', title: 'Routines', focusedIcon: 'clipboard-text', unfocusedIcon: 'clipboard-text-outline' },
-    { key: 'exercises', title: 'Exercises', focusedIcon: 'dumbbell' },
-    { key: 'history', title: 'History', focusedIcon: 'history' },
+    { key: 'home', title: i18n.t('home'), focusedIcon: 'home', unfocusedIcon: 'home-outline'},
+    { key: 'routines', title: i18n.t('routines'), focusedIcon: 'clipboard-text', unfocusedIcon: 'clipboard-text-outline' },
+    { key: 'exercises', title: i18n.t('exercises'), focusedIcon: 'dumbbell' },
+    { key: 'dashboard', title: i18n.t('dashboard'), focusedIcon: 'view-dashboard', unfocusedIcon: 'view-dashboard-outline' },
+    { key: 'settings', title: i18n.t('settings'), focusedIcon: 'cog', unfocusedIcon: 'cog-outline' },
   ]);
   
   type AppRoute = typeof routes[number];
@@ -29,8 +32,10 @@ export default function MainNavigation() {
         return <View style={{ flex: 1 }}><RoutinesScreen /></View>;
       case 'exercises':
         return <View style={{ flex: 1 }}><ExercisesScreen /></View>;
-      case 'history':
-        return <View style={{ flex: 1 }}><HistoryScreen /></View>;
+      case 'dashboard':
+        return <View style={{ flex: 1 }}><DashboardScreen /></View>;
+      case 'settings':
+        return <View style={{ flex: 1 }}><SettingsScreen /></View>;
       default:
         return null;
     }

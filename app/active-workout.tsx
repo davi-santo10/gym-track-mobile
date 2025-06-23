@@ -12,6 +12,7 @@ import {
   useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
+import i18n from "@/lib/i18n";
 
 const formatTime = (totalSeconds: number) => {
   const minutes = Math.floor(totalSeconds / 60);
@@ -91,8 +92,8 @@ export default function ActiveWorkoutScreen() {
   if (!activeWorkout) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>No Active Workout Found.</Text>
-        <Button onPress={() => router.back()}>Go Back</Button>
+        <Text style={styles.emptyText}>{i18n.t('noActiveWorkout')}</Text>
+        <Button onPress={() => router.back()}>{i18n.t('goBack')}</Button>
       </View>
     );
   }
@@ -136,15 +137,15 @@ export default function ActiveWorkoutScreen() {
             >
               <View style={styles.detailsContainer}>
                 <View style={styles.setRow}>
-                  <Text style={[styles.setHeader, styles.setColumn]}>Set</Text>
+                  <Text style={[styles.setHeader, styles.setColumn]}>{i18n.t('set')}</Text>
                   <Text style={[styles.setHeader, styles.repsColumn]}>
-                    Reps
+                    {i18n.t('reps')}
                   </Text>
                   <Text style={[styles.setHeader, styles.weightColumn]}>
-                    Weight (kg)
+                    {i18n.t('weightKg')}
                   </Text>
                   <Text style={[styles.setHeader, styles.statusColumn]}>
-                    Done
+                    {i18n.t('done')}
                   </Text>
                 </View>
 
@@ -211,7 +212,7 @@ export default function ActiveWorkoutScreen() {
           onPress={handleFinishWorkout}
           contentStyle={styles.buttonContent}
         >
-          Finish Workout
+          {i18n.t('finishWorkout')}
         </Button>
       </View>
     </SafeAreaView>

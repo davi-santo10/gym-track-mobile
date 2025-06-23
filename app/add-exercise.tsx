@@ -1,12 +1,13 @@
 import { useExercises } from "@/context/ExercisesContext";
-import { ExerciseData, MuscleGroup } from "@/data/exercises";
+import { MuscleGroup } from "@/data/exercises";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Button, Chip, Text, TextInput, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
+import i18n from "@/lib/i18n";
 
-const muscleGroupOptions: ExerciseData["muscleGroup"][] = [
+const muscleGroupOptions: MuscleGroup[] = [
   "Chest",
   "Back",
   "Biceps",
@@ -40,7 +41,7 @@ export default function AddExerciseScreen() {
     >
       <View style={styles.content}>
         <TextInput
-          label="Exercise Name"
+          label={i18n.t('exerciseName')}
           value={name}
           onChangeText={setName}
           mode="outlined"
@@ -48,7 +49,7 @@ export default function AddExerciseScreen() {
         />
 
         <Text variant="titleMedium" style={styles.label}>
-          Muscle Group
+          {i18n.t('muscleGroup')}
         </Text>
 
         <View style={styles.chipContainer}>
@@ -60,7 +61,7 @@ export default function AddExerciseScreen() {
               selected={muscleGroup === group}
               onPress={() => setMuscleGroup(group)}
             >
-              {group}
+              {i18n.t(`muscleGroups.${group}`)}
             </Chip>
           ))}
         </View>
@@ -72,7 +73,7 @@ export default function AddExerciseScreen() {
           onPress={handleSave}
           contentStyle={styles.buttonContent}
         >
-          Save Exercise
+          {i18n.t('saveExercise')}
         </Button>
       </View>
     </SafeAreaView>

@@ -14,6 +14,7 @@ import {
   Text,
   useTheme,
 } from "react-native-paper";
+import i18n from "@/lib/i18n";
 
 export default function SelectExercisesScreen() {
   const theme = useTheme();
@@ -101,7 +102,7 @@ export default function SelectExercisesScreen() {
         stickySectionHeadersEnabled={false}
         ListHeaderComponent={
           <Searchbar
-            placeholder="Search exercise library"
+            placeholder={i18n.t('searchExerciseLibrary')}
             onChangeText={setSearchQuery}
             value={searchQuery}
             style={styles.searchbar}
@@ -132,13 +133,13 @@ export default function SelectExercisesScreen() {
         }}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
-            <Text variant="bodyMedium">No exercises found.</Text>
+            <Text variant="bodyMedium">{i18n.t('noExercisesFound')}</Text>
           </View>
         )}
       />
       <FAB
         icon="check"
-        label="Add Exercises"
+        label={i18n.t('addExercises')}
         style={styles.fab}
         onPress={handleConfirm}
       />

@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { ActivityIndicator, Card, IconButton, Text, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
+import i18n from "@/lib/i18n";
 
 const formatDuration = (ms: number) => {
   const totalSeconds = Math.floor(ms / 1000);
@@ -23,15 +24,15 @@ export default function LogDetailScreen() {
   const handleDelete = () => {
     if (!log) return;
     Alert.alert(
-      "Delete Workout Log",
-      "Are you sure you want to permanently delete this log?",
+      i18n.t('deleteWorkoutLogTitle'),
+      i18n.t('deleteWorkoutLogMessage'),
       [
         {
-          text: "Cancel",
+          text: i18n.t('cancel'),
           style: "cancel",
         },
         {
-          text: "Delete",
+          text: i18n.t('delete'),
           onPress: () => {
             deleteWorkoutLog(log.id);
             router.back();
@@ -45,7 +46,7 @@ export default function LogDetailScreen() {
   useEffect (() => {
 	if (log) {
 		navigation.setOptions({
-			title: 'Workout Details',
+			title: i18n.t('workoutDetails'),
 			headerRight: () => (
 				<IconButton
 				icon="delete-outline"
@@ -68,7 +69,7 @@ export default function LogDetailScreen() {
           <Text variant="headlineMedium">{log.routineName}</Text>
           <Text variant="bodyLarge">{new Date(log.date).toDateString()}</Text>
           <Text variant="bodyMedium">
-            Duration: {formatDuration(log.duration)}
+            {i18n.t('duration', { duration: formatDuration(log.duration) })}
           </Text>
         </View>
 
@@ -81,8 +82,8 @@ export default function LogDetailScreen() {
             <Card.Content>
               {exerciseLog.progress.map((set, setIndex) => (
                 <View key={setIndex} style={styles.setRow}>
-                  <Text style={styles.setText}>Set {setIndex + 1}</Text>
-                  <Text>{set.reps} reps</Text>
+                  <Text style={styles.setText}>{i18n.t('set')} {setIndex + 1}</Text>
+                  <Text>{i18n.t('reps', { count: parseInt(set.reps, 10)})} {set.reps}</Text>
                   <Text>{set.weight || "0"} kg</Text>
                 </View>
               ))}

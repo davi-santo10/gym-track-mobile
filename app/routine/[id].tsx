@@ -6,6 +6,7 @@ import { Card, FAB, IconButton, Text, useTheme } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useActiveWorkout } from "@/context/ActiveWorkoutContext";
 import { useWorkoutLog } from "@/context/WorkoutLogContext";
+import i18n from "@/lib/i18n";
 
 export default function ViewRoutineScreen() {
   const theme = useTheme();
@@ -20,8 +21,7 @@ export default function ViewRoutineScreen() {
   useEffect(() => {
     if (routine) {
       navigation.setOptions({
-        // --- CHANGE: The header title is now generic, not redundant ---
-        title: "Routine Details",
+        title: i18n.t('routineDetails'),
         headerRight: () => (
           <IconButton
             icon="pencil-outline"
@@ -60,7 +60,7 @@ export default function ViewRoutineScreen() {
               {routine.name}
             </Text>
             <Text variant="titleLarge" style={styles.exercisesHeader}>
-              Exercises
+              {i18n.t('exercises')}
             </Text>
           </View>
         )}
@@ -70,11 +70,11 @@ export default function ViewRoutineScreen() {
               <Text variant="titleMedium">{item.name}</Text>
               <View style={styles.statsContainer}>
                 <View style={styles.stat}>
-                  <Text variant="labelLarge">Sets</Text>
+                  <Text variant="labelLarge">{i18n.t('set', { count: 2})}</Text>
                   <Text variant="bodyLarge">{item.sets}</Text>
                 </View>
                 <View style={styles.stat}>
-                  <Text variant="labelLarge">Reps</Text>
+                  <Text variant="labelLarge">{i18n.t('reps')}</Text>
                   <Text variant="bodyLarge">{item.reps}</Text>
                 </View>
               </View>
@@ -85,7 +85,7 @@ export default function ViewRoutineScreen() {
 
       <FAB
         icon="play"
-        label="Start Workout"
+        label={i18n.t('startWorkout')}
         style={styles.fab}
         onPress={handleStartWorkout}
       />

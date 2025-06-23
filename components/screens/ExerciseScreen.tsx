@@ -5,6 +5,7 @@ import { useExercises } from '@/context/ExercisesContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ExerciseData } from '@/data/exercises';
 import { router } from 'expo-router';
+import i18n from '@/lib/i18n';
 
 export function ExercisesScreen() {
   const { exercises, deleteCustomExercise } = useExercises();
@@ -34,10 +35,10 @@ export function ExercisesScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Appbar.Header>
-        <Appbar.Content title="Exercise Library" />
+        <Appbar.Content title={i18n.t('exerciseLibrary')} />
       </Appbar.Header>
       <Searchbar
-        placeholder="Search for an exercise"
+        placeholder={i18n.t('searchExerciseLibrary')}
         onChangeText={setSearchQuery}
         value={searchQuery}
         style={styles.searchbar}
@@ -76,14 +77,14 @@ export function ExercisesScreen() {
         )}
         ListEmptyComponent={() => (
             <View style={styles.emptyContainer}>
-                <Text variant='bodyMedium'>No exercises found.</Text>
+                <Text variant='bodyMedium'>{i18n.t('noExercisesFound')}</Text>
             </View>
         )}
       />
 
       <FAB
         icon="plus"
-        label="Add Custom"
+        label={i18n.t('addCustom')}
         style={styles.fab}
         onPress={() => router.push(`/add-exercise`)}
       />

@@ -1,8 +1,7 @@
-// In context/ExercisesContext.tsx
-
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { PREDEFINED_EXERCISES, ExerciseData } from '@/data/exercises';
+import { PREDEFINED_EXERCISES, ExerciseData, MuscleGroup } from '@/data/exercises';
+import i18n from '@/lib/i18n';
 
 interface ExercisesContextType {
   exercises: ExerciseData[];
@@ -20,11 +19,20 @@ export const ExercisesProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const loadExercises = async () => {
       try {
+        // Translate predefined exercises
+        const translatedPredefinedExercises = PREDEFINED_EXERCISES.map(ex => ({
+          ...ex,
+          name: i18n.t(`exerciseList.${ex.id}`),
+          muscleGroup: i18n.t(`muscleGroups.${ex.muscleGroup}`) as MuscleGroup,
+        }));
+
         const storedData = await AsyncStorage.getItem(EXERCISES_STORAGE_KEY);
         if (storedData !== null) {
-          setExercises(JSON.parse(storedData));
+          const storedExercises: ExerciseData[] = JSON.parse(storedData);
+          const customExercises = storedExercises.filter(ex => ex.id.startsWith('custom-'));
+          setExercises([...translatedPredefinedExercises, ...customExercises]);
         } else {
-          setExercises(PREDEFINED_EXERCISES);
+          setExercises(translatedPredefinedExercises);
         }
       } catch (e) {
         console.error("Failed to load exercises.", e);
@@ -40,7 +48,9 @@ export const ExercisesProvider = ({ children }: { children: ReactNode }) => {
     const saveExercises = async () => {
       if (!isDataLoaded) return;
       try {
-        await AsyncStorage.setItem(EXERCISES_STORAGE_KEY, JSON.stringify(exercises));
+        // Only save custom exercises to storage
+        const customExercises = exercises.filter(ex => ex.id.startsWith('custom-'));
+        await AsyncStorage.setItem(EXERCISES_STORAGE_KEY, JSON.stringify(customExercises));
       } catch (e) {
         console.error("Failed to save exercises.", e);
       }

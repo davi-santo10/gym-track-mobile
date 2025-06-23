@@ -13,7 +13,7 @@ import { useFonts } from "expo-font";
 import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { Platform } from "react-native";
 import {
   IconButton,
@@ -22,22 +22,50 @@ import {
   PaperProvider,
 } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import i18n from "@/lib/i18n";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Localization from 'expo-localization';
 
+// Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
+const I18N_STORAGE_KEY = 'my-gym-tracker-i18n-locale';
 
 export default function RootLayout() {
-  const [loaded] = useFonts({
+  const [loaded, error] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
   const colorScheme = useColorScheme();
 
+  // Load language preference on startup
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
+    const loadI18n = async () => {
+      try {
+        const savedLocale = await AsyncStorage.getItem(I18N_STORAGE_KEY);
+        const deviceLocale = Localization.getLocales()[0]?.languageCode ?? 'en';
+        i18n.locale = savedLocale || deviceLocale;
+      } catch (e) {
+        console.error("Failed to load language from storage", e);
+        // Fallback to device locale if anything goes wrong
+        i18n.locale = Localization.getLocales()[0]?.languageCode ?? 'en';
+      }
+    };
+    
+    async function prepare() {
+      try {
+        await loadI18n();
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        if(loaded || error) {
+          await SplashScreen.hideAsync();
+        }
+      }
     }
-  }, [loaded]);
 
-  if (!loaded) {
+    prepare();
+  }, [loaded, error]);
+
+  if (!loaded && !error) {
     return null;
   }
 
@@ -72,7 +100,7 @@ export default function RootLayout() {
                     <Stack.Screen
                       name="add-routine"
                       options={{
-                        title: "Add New Routine",
+                        title: i18n.t('addNewRoutine'),
                         headerLeft: (props) => (
                           <IconButton
                             icon="arrow-left"
@@ -86,7 +114,7 @@ export default function RootLayout() {
                     <Stack.Screen
                       name="edit-routine/[id]"
                       options={{
-                        title: "Edit Routine",
+                        title: i18n.t('editRoutine'),
                         headerLeft: (props) => (
                           <IconButton
                             icon="arrow-left"
@@ -100,7 +128,7 @@ export default function RootLayout() {
                     <Stack.Screen
                       name="routine/[id]"
                       options={{
-                        title: "View Routine",
+                        title: i18n.t('viewRoutine'),
                         headerLeft: (props) => (
                           <IconButton
                             icon="arrow-left"
@@ -114,7 +142,7 @@ export default function RootLayout() {
                     <Stack.Screen
                       name="add-exercise"
                       options={{
-                        title: "Add Custom Exercise",
+                        title: i18n.t('addCustomExercise'),
                         headerLeft: (props) => (
                           <IconButton
                             icon="arrow-left"
@@ -128,7 +156,7 @@ export default function RootLayout() {
                     <Stack.Screen
                       name="select-exercises"
                       options={{
-                        title: "Select Exercises",
+                        title: i18n.t('selectExercises'),
                         presentation: "modal",
                         animation:
                           Platform.OS === "android"
@@ -146,7 +174,7 @@ export default function RootLayout() {
                     <Stack.Screen
                       name="active-workout"
                       options={{
-                        title: "Active Workout",
+                        title: i18n.t('activeWorkout'),
                         headerLeft: (props) => (
                           <IconButton
                             icon="arrow-left"
@@ -160,7 +188,7 @@ export default function RootLayout() {
                     <Stack.Screen
                       name="log/[id]"
                       options={{
-                        title: "Workout Details",
+                        title: i18n.t('workoutDetails'),
                         headerLeft: (props) => (
                           <IconButton
                             icon="arrow-left"

@@ -4,6 +4,7 @@ import { Appbar, FAB, List, IconButton } from 'react-native-paper';
 import { useRoutines } from '@/context/RoutinesContext';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import i18n from '@/lib/i18n';
 
 export function RoutinesScreen() {
   const { routines, deleteRoutine } = useRoutines();
@@ -11,7 +12,7 @@ export function RoutinesScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Appbar.Header>
-        <Appbar.Content title="My Routines" />
+        <Appbar.Content title={i18n.t('myRoutines')} />
       </Appbar.Header>
       
       <FlatList
@@ -21,7 +22,14 @@ export function RoutinesScreen() {
         renderItem={({ item }) => (
           <List.Item
             title={item.name}
-            description={`${item.exercises.length} exercises ${item.day ? `• ${item.day}` : ''}`}
+            description={
+              item.day
+                ? String(i18n.t('exerciseCountWithDay', {
+                    count: item.exercises.length,
+                    day: String(i18n.t(['days', item.day.toLowerCase()])),
+                  }))
+                : String(i18n.t('exerciseCount', { count: item.exercises.length }))
+            }
             left={(props) => <List.Icon {...props} icon="clipboard-list-outline" />}
             onPress={() => {
               router.push(`/routine/${item.id}`);

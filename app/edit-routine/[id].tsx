@@ -20,6 +20,7 @@ import {
   useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
+import i18n from "@/lib/i18n";
 
 const days: DayOfWeek[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -87,14 +88,14 @@ export default function EditRoutineScreen() {
       <View style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <TextInput
-            label="Routine Name"
+            label={i18n.t('routineName')}
             value={routineName}
             onChangeText={setRoutineName}
             mode="outlined"
             style={styles.input}
           />
           
-          <Text variant="titleLarge" style={styles.title}>Assign to a day (optional)</Text>
+          <Text variant="titleLarge" style={styles.title}>{i18n.t('assignDay')}</Text>
           <View style={styles.chipContainer}>
             {days.map(day => {
               const isSelected = selectedDay === day;
@@ -112,20 +113,20 @@ export default function EditRoutineScreen() {
                   }}
                   onPress={() => setSelectedDay(currentDay => currentDay === day ? undefined : day)}
                 >
-                  {day}
+                  {i18n.t(`days.${day.toLowerCase()}`)}
                 </Chip>
               );
             })}
           </View>
           
-          <Text variant="titleLarge" style={styles.exercisesTitle}>Exercises</Text>
+          <Text variant="titleLarge" style={styles.exercisesTitle}>{i18n.t('exercises')}</Text>
           
           {exercises.map((exercise) => (
             <View key={exercise.id} style={styles.exerciseContainer}>
               <Text variant="titleMedium">{exercise.name}</Text>
               <View style={styles.bottomRow}>
                 <TextInput
-                  label="Sets"
+                  label={i18n.t('set', { count: 2})}
                   value={exercise.sets}
                   onChangeText={(text) => updateSets(exercise.id, text)}
                   mode="outlined"
@@ -133,7 +134,7 @@ export default function EditRoutineScreen() {
                   keyboardType="numeric"
                 />
                 <TextInput
-                  label="Reps"
+                  label={i18n.t('reps')}
                   value={exercise.reps}
                   onChangeText={(text) => updateReps(exercise.id, text)}
                   mode="outlined"
@@ -150,13 +151,13 @@ export default function EditRoutineScreen() {
           ))}
           
           <Button mode="elevated" onPress={() => router.push('/select-exercises')} style={styles.addExerciseButton}>
-            Add Exercises
+            {i18n.t('addExercises')}
           </Button>
         </ScrollView>
 
         <SafeAreaView edges={['bottom']}>
           <Button mode="contained" onPress={handleSave} style={styles.saveButton}>
-            Save Changes
+            {i18n.t('saveChanges')}
           </Button>
         </SafeAreaView>
       </View>

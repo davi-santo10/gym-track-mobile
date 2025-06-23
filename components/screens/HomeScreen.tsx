@@ -17,6 +17,7 @@ import {
   useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
+import i18n from "@/lib/i18n";
 
 const DAY_OF_WEEK: (
   | "Sunday"
@@ -52,8 +53,12 @@ export function HomeScreen() {
   const [modalData, setModalData] = useState<WorkoutSummary | null>(null);
   const [isFabVisible, setIsFabVisible] = useState(false);
 
-  const today = DAY_OF_WEEK[new Date().getDay()];
-  const todaysRoutine = routines.find((r) => r.day === today);
+  // --- FIX: Access nested translations using an array key ---
+  const dayIndex = new Date().getDay();
+  const todayKey = DAY_OF_WEEK[dayIndex].toLowerCase();
+  const today = String(i18n.t(['days', todayKey]));
+  
+  const todaysRoutine = routines.find((r) => r.day === DAY_OF_WEEK[dayIndex]);
   const lastLogForTodaysRoutine = todaysRoutine
     ? logs.find((log) => log.routineName === todaysRoutine.name)
     : undefined;
@@ -87,16 +92,16 @@ export function HomeScreen() {
         >
           <View style={styles.modalContent}>
             <Text variant="headlineSmall" style={styles.modalTitle}>
-              Workout Complete!
+              {String(i18n.t('workoutCompleteTitle'))}
             </Text>
             <View style={styles.statRow}>
-              <Text variant="titleMedium">Time:</Text>
+              <Text variant="titleMedium">{String(i18n.t('time'))}</Text>
               <Text variant="bodyLarge">
                 {modalData ? formatDuration(modalData.duration) : ""}
               </Text>
             </View>
             <View style={styles.statRow}>
-              <Text variant="titleMedium">Total Weight Lifted:</Text>
+              <Text variant="titleMedium">{String(i18n.t('totalWeightLifted'))}</Text>
               <Text variant="bodyLarge">
                 {modalData?.totalWeight.toLocaleString() ?? "0"} kg
               </Text>
@@ -106,7 +111,7 @@ export function HomeScreen() {
               onPress={hideModal}
               style={styles.modalButton}
             >
-              Great!
+              {String(i18n.t('great'))}
             </Button>
           </View>
         </Modal>
@@ -120,13 +125,13 @@ export function HomeScreen() {
                 variant="titleLarge"
                 style={{ color: theme.colors.onSurface }}
               >
-                Gym Tracker
+                {String(i18n.t('gymTracker'))}
               </Text>
               <Text
                 variant="bodyMedium"
                 style={{ color: theme.colors.onSurfaceVariant, marginTop: -4 }}
               >
-                {`Happy ${today}!`}
+                {String(i18n.t('happyDay', { day: today }))}
               </Text>
             </View>
           }
@@ -139,7 +144,7 @@ export function HomeScreen() {
             {activeWorkout ? (
               <View>
                 <Card.Title
-                  title="Workout in Progress"
+                  title={String(i18n.t('workoutInProgress'))}
                   titleVariant="titleLarge"
                 />
                 <Card.Content>
@@ -147,29 +152,26 @@ export function HomeScreen() {
                     {activeWorkout.routine.name}
                   </Text>
                   <Text variant="bodyMedium">
-                    A workout is currently active. Keep up the great work!
+                    {String(i18n.t('workoutInProgressMessage'))}
                   </Text>
                 </Card.Content>
               </View>
             ) : (
-              // This is the "Today's Plan" view.
               <View>
-                <Card.Title title="Today's Plan" />
+                <Card.Title title={String(i18n.t('todaysPlan'))} />
                 {todaysRoutine ? (
                   <>
                     <Card.Content>
                       <Text variant="titleMedium">{todaysRoutine.name}</Text>
                       <Text variant="bodyMedium">
-                        {todaysRoutine.exercises.length} exercises planned
+                        {String(i18n.t('exercisesPlanned', { count: todaysRoutine.exercises.length }))}
                       </Text>
                     </Card.Content>
-                    {/* --- CHANGE 2: The Card.Actions and Button were removed from here --- */}
                   </>
                 ) : (
                   <Card.Content>
                     <Text variant="bodyMedium">
-                      You have no workouts scheduled for today. Resting is also
-                      essential!
+                      {String(i18n.t('noWorkoutToday'))}
                     </Text>
                   </Card.Content>
                 )}
@@ -193,8 +195,8 @@ export function HomeScreen() {
             }
           >
             <Card.Title
-              title="Last Time"
-              subtitle={`Performance for ${todaysRoutine.name}`}
+              title={String(i18n.t('lastTime'))}
+              subtitle={String(i18n.t('lastTimeFor', { routineName: todaysRoutine.name}))}
             />
             <Card.Content>
               {lastLogForTodaysRoutine ? (
@@ -208,7 +210,7 @@ export function HomeScreen() {
                     <List.Item
                       key={ex.details.id}
                       title={ex.details.name}
-                      description={`${ex.progress.length} sets`}
+                      description={String(i18n.t('exerciseCount', { count: ex.progress.length}))}
                       left={(props) => (
                         <List.Icon {...props} icon="weight-lifter" />
                       )}
@@ -222,21 +224,19 @@ export function HomeScreen() {
                 </View>
               ) : (
                 <Text variant="bodyMedium">
-                  You haven't logged this workout before. Let's get it!
+                  {String(i18n.t('logNotFound'))}
                 </Text>
               )}
             </Card.Content>
           </Card>
         ) : (
           <Card style={styles.card}>
-            <Card.Title title="Recent Activity" />
+            <Card.Title title={String(i18n.t('recentActivity'))} />
             <Card.Content>
               {mostRecentLogOverall ? (
                 <List.Item
                   title={mostRecentLogOverall.routineName}
-                  description={`Completed on ${new Date(
-                    mostRecentLogOverall.date
-                  ).toLocaleDateString()}`}
+                  description={String(i18n.t('completedOn', { date: new Date(mostRecentLogOverall.date).toLocaleDateString()}))}
                   left={(props) => <List.Icon {...props} icon="history" />}
                   onPress={() =>
                     router.push({
@@ -246,16 +246,16 @@ export function HomeScreen() {
                   }
                 />
               ) : (
-                <Text variant="bodyMedium">No recent workouts logged.</Text>
+                <Text variant="bodyMedium">{String(i18n.t('noRecentWorkouts'))}</Text>
               )}
             </Card.Content>
           </Card>
         )}
       </ScrollView>
-      {todaysRoutine && (
+      {todaysRoutine && !activeWorkout && (
         <FAB
           icon="play"
-          label="Start Workout"
+          label={String(i18n.t('startWorkout'))}
           style={styles.fab}
           onPress={() => router.push({ pathname: '/routine/[id]', params: { id: todaysRoutine.id }})}
         />
@@ -263,7 +263,7 @@ export function HomeScreen() {
 
       <AnimatedFAB
         icon="play-circle-outline"
-        label="Resume Workout"
+        label={String(i18n.t('resumeWorkout'))}
         extended
         onPress={() => router.push("/active-workout")}
         visible={isFabVisible}
