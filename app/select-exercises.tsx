@@ -24,34 +24,41 @@ export default function SelectExercisesScreen() {
     useRoutineBuilder();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [localSelection, setLocalSelection] = useState(
-    () => new Set(initialExercises.map((e) => e.id))
+  const [localSelection, setLocalSelection] = useState(() =>
+    initialExercises.map((e) => e.id)
   );
+
   const handleToggleExercise = (exercise: ExerciseData) => {
     setLocalSelection((currentSelection) => {
-      const newSelection = new Set(currentSelection);
-      if (newSelection.has(exercise.id)) {
-        newSelection.delete(exercise.id);
+      const newSelection = [...currentSelection];
+      const index = newSelection.indexOf(exercise.id);
+
+      if (index > -1) {
+        // If already selected, remove it
+        newSelection.splice(index, 1);
       } else {
-        newSelection.add(exercise.id);
+        // If not selected, add it to the end
+        newSelection.push(exercise.id);
       }
       return newSelection;
     });
   };
 
   const handleConfirm = useCallback(() => {
-    const newExercises: Exercise[] = [];
-    exerciseLibrary.forEach((exercise) => {
-      if (localSelection.has(exercise.id)) {
-        const existingExercise = initialExercises.find(
-          (ex) => ex.id === exercise.id
-        );
-        if (existingExercise) {
-          newExercises.push(existingExercise);
-        } else {
-          newExercises.push({ ...exercise, sets: "3", reps: "10" });
-        }
+    // --- CHANGE: Build the new exercise list based on the ordered selection ---
+    const newExercises: Exercise[] = localSelection.map((selectedId) => {
+      // Check if the exercise already exists in the routine to preserve its sets/reps
+      const existingExercise = initialExercises.find(
+        (ex) => ex.id === selectedId
+      );
+      if (existingExercise) {
+        return existingExercise;
       }
+      // Otherwise, get the full exercise data from the library
+      const libraryExercise = exerciseLibrary.find(
+        (ex) => ex.id === selectedId
+      )!;
+      return { ...libraryExercise, sets: "3", reps: "10" };
     });
 
     setBuilderExercises(newExercises);
@@ -117,7 +124,7 @@ export default function SelectExercisesScreen() {
           </Text>
         )}
         renderItem={({ item }) => {
-          const isSelected = localSelection.has(item.id);
+          const isSelected = localSelection.includes(item.id)
           return (
             <List.Item
               title={item.name}

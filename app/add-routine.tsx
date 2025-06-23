@@ -1,15 +1,16 @@
 import { useRoutineBuilder } from "@/context/RoutineBuilderContext";
-import { DayOfWeek, useRoutines } from "@/context/RoutinesContext";
+import { DayOfWeek, Exercise, useRoutines } from "@/context/RoutinesContext";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
+  Dimensions,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
+  TouchableOpacity,
   View,
-  Dimensions,
 } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   Button,
   Chip,
@@ -19,7 +20,9 @@ import {
   useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import i18n from "@/lib/i18n";
+import DraggableFlatList, {
+  RenderItemParams,
+} from "react-native-draggable-flatlist";
 
 const days: DayOfWeek[] = [
   "Sunday",
@@ -33,9 +36,9 @@ const days: DayOfWeek[] = [
 const PADDING_HORIZONTAL = 16;
 const GAP = 8;
 const CHIPS_PER_ROW = 4;
-const screenWidth = Dimensions.get('window').width;
+const screenWidth = Dimensions.get("window").width;
 const totalGapSize = (CHIPS_PER_ROW - 1) * GAP;
-const availableWidth = screenWidth - (PADDING_HORIZONTAL * 2);
+const availableWidth = screenWidth - PADDING_HORIZONTAL * 2;
 const chipWidth = (availableWidth - totalGapSize) / CHIPS_PER_ROW;
 
 export default function AddRoutineScreen() {
@@ -51,6 +54,7 @@ export default function AddRoutineScreen() {
     removeExercise,
     startBuilding,
     clearBuilder,
+    setBuilderExercises,
   } = useRoutineBuilder();
 
   const [selectedDay, setSelectedDay] = useState<DayOfWeek | undefined>();
@@ -58,7 +62,7 @@ export default function AddRoutineScreen() {
   useEffect(() => {
     startBuilding();
     return () => {
-      clearBuilder;
+      clearBuilder();
     };
   }, []);
 
@@ -70,123 +74,188 @@ export default function AddRoutineScreen() {
     router.back();
   };
 
-  return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-    >
-       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <TextInput
-            label={i18n.t('routineName')}
-            value={routineName}
-            onChangeText={setRoutineName}
-            mode="outlined"
-            style={styles.input}
-          />
-          
-          <Text variant="titleLarge" style={styles.title}>{i18n.t('assignDay')}</Text>
-          <View style={styles.chipContainer}>
-            {days.map(day => {
-              const isSelected = selectedDay === day;
-              
-              return (
-                <Chip
-                  key={day}
-                  mode={isSelected ? 'flat' : 'outlined'}
-                  style={[
-                    styles.chip,
-                    isSelected && { backgroundColor: theme.colors.primaryContainer }
-                  ]}
-                  textStyle={{
-                    color: isSelected ? theme.colors.onPrimaryContainer : theme.colors.onSurface
-                  }}
-                  onPress={() => setSelectedDay(currentDay => currentDay === day ? undefined : day)}
-                >
-                  {i18n.t(`days.${day.toLowerCase()}`)}
-                </Chip>
-              );
-            })}
-          </View>
-          
-          <Text variant="titleLarge" style={styles.exercisesTitle}>{i18n.t('exercises')}</Text>
-          
-          {exercises.map(exercise => (
-            <View key={exercise.id} style={styles.exerciseContainer}>
-              <Text variant="titleMedium">{exercise.name}</Text>
-              <View style={styles.bottomRow}>
-                <TextInput
-                  label={i18n.t('set', { count: 2})}
-                  value={exercise.sets}
-                  onChangeText={text => updateSets(exercise.id, text)}
-                  mode="outlined"
-                  style={styles.setsInput}
-                  keyboardType="numeric"
-                />
-                <TextInput
-                  label={i18n.t('reps')}
-                  value={exercise.reps}
-                  onChangeText={text => updateReps(exercise.id, text)}
-                  mode="outlined"
-                  style={styles.repsInput}
-                  keyboardType="numeric"
-                />
-                <IconButton
-                  icon="delete-outline"
-                  onPress={() => removeExercise(exercise.id)}
-                  style={styles.deleteButton}
-                />
-              </View>
+  const renderItem = useCallback(
+    ({ item, drag, isActive }: RenderItemParams<Exercise>) => {
+      return (
+        <View
+          style={[
+            styles.exerciseContainer,
+            {
+              backgroundColor: isActive
+                ? theme.colors.surfaceVariant
+                : "transparent",
+            },
+          ]}
+        >
+          <TouchableOpacity
+            onLongPress={drag}
+            disabled={isActive}
+            style={styles.dragHandle}
+          >
+            <IconButton icon="drag-vertical" size={28} />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text variant="titleMedium">{item.name}</Text>
+            <View style={styles.bottomRow}>
+              <TextInput
+                label="Sets"
+                value={item.sets}
+                onChangeText={(text) => updateSets(item.id, text)}
+                mode="outlined"
+                style={styles.setsInput}
+                keyboardType="numeric"
+              />
+              <TextInput
+                label="Reps"
+                value={item.reps}
+                onChangeText={(text) => updateReps(item.id, text)}
+                mode="outlined"
+                style={styles.repsInput}
+                keyboardType="numeric"
+              />
+              <IconButton
+                icon="delete-outline"
+                onPress={() => removeExercise(item.id)}
+                style={styles.deleteButton}
+              />
             </View>
-          ))}
-          <Button mode="elevated" onPress={() => router.push('/select-exercises')} style={styles.addExerciseButton}>
-            {i18n.t('addExercises')}
-          </Button>
-        </ScrollView>
-        <SafeAreaView edges={['bottom']}>
-          <Button mode="contained" onPress={handleSave} style={styles.saveButton}>
-            {i18n.t('saveRoutine')}
+          </View>
+        </View>
+      );
+    },
+    [theme.colors, updateSets, updateReps, removeExercise]
+  );
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1, backgroundColor: theme.colors.background }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      >
+        <DraggableFlatList
+          data={exercises}
+          onDragEnd={({ data }) => setBuilderExercises(data)}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={styles.listContentContainer}
+          ListHeaderComponent={
+            <View style={{ paddingHorizontal: PADDING_HORIZONTAL }}>
+              <TextInput
+                label="Routine Name"
+                value={routineName}
+                onChangeText={setRoutineName}
+                mode="outlined"
+                style={styles.input}
+              />
+
+              <Text variant="titleLarge" style={styles.title}>
+                Assign to a day (optional)
+              </Text>
+              <View style={styles.chipContainer}>
+                {days.map((day) => {
+                  const isSelected = selectedDay === day;
+                  return (
+                    <Chip
+                      key={day}
+                      mode={isSelected ? "flat" : "outlined"}
+                      style={[
+                        styles.chip,
+                        isSelected && {
+                          backgroundColor: theme.colors.primaryContainer,
+                        },
+                      ]}
+                      textStyle={{
+                        color: isSelected
+                          ? theme.colors.onPrimaryContainer
+                          : theme.colors.onSurface,
+                      }}
+                      onPress={() =>
+                        setSelectedDay((currentDay) =>
+                          currentDay === day ? undefined : day
+                        )
+                      }
+                    >
+                      {day}
+                    </Chip>
+                  );
+                })}
+              </View>
+
+              <Text variant="titleLarge" style={styles.exercisesTitle}>
+                Exercises
+              </Text>
+            </View>
+          }
+          ListFooterComponent={
+            <Button
+              mode="elevated"
+              onPress={() => router.push("/select-exercises")}
+              style={styles.addExerciseButton}
+            >
+              Add Exercises
+            </Button>
+          }
+        />
+        <SafeAreaView edges={["bottom"]}>
+          <Button
+            mode="contained"
+            onPress={handleSave}
+            style={styles.saveButton}
+          >
+            Save Routine
           </Button>
         </SafeAreaView>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scrollContent: { 
-    paddingHorizontal: PADDING_HORIZONTAL,
-    paddingVertical: 16, 
+  listContentContainer: {
+    paddingTop: 16,
     paddingBottom: 24,
   },
   input: { marginBottom: 16 },
   title: { marginBottom: 12 },
   chipContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: GAP,
     marginBottom: 24,
   },
   chip: {
     width: chipWidth,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   exercisesTitle: {
     marginBottom: 16,
   },
   exerciseContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 20,
-    padding: 16,
+    paddingVertical: 16,
+    paddingRight: 16,
+    marginHorizontal: PADDING_HORIZONTAL,
     borderWidth: 1,
     borderRadius: 12,
-    borderColor: 'rgba(128, 128, 128, 0.3)',
+    borderColor: "rgba(128, 128, 128, 0.3)",
   },
-  bottomRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12 },
+  dragHandle: {
+    justifyContent: "center",
+    alignItems: "center",
+    width: 60,
+  },
+  bottomRow: { flexDirection: "row", alignItems: "center", marginTop: 12 },
   setsInput: { flex: 1 },
   repsInput: { flex: 1, marginHorizontal: 8 },
   deleteButton: { margin: 0 },
-  addExerciseButton: { marginTop: 8, alignSelf: 'flex-start' },
+  addExerciseButton: {
+    marginTop: 8,
+    alignSelf: "flex-start",
+    marginHorizontal: PADDING_HORIZONTAL,
+  },
   saveButton: { marginHorizontal: 16, marginVertical: 8, paddingVertical: 8 },
 });
