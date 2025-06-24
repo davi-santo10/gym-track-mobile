@@ -1,5 +1,7 @@
+// davi-santo10/gym-track-mobile/gym-track-mobile-a3c082c6a5f179f164780a4960a695da27fed457/app/edit-routine/[id].tsx
 import { useRoutineBuilder } from "@/context/RoutineBuilderContext";
 import { DayOfWeek, Exercise, useRoutines } from "@/context/RoutinesContext";
+import i18n from "@/lib/i18n"; // Import i18n
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -11,7 +13,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import DraggableFlatList, {
+  RenderItemParams,
+} from "react-native-draggable-flatlist";
 import {
   Button,
   Chip,
@@ -21,9 +25,6 @@ import {
   useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import DraggableFlatList, {
-  RenderItemParams,
-} from "react-native-draggable-flatlist";
 
 const days: DayOfWeek[] = [
   "Sunday",
@@ -111,7 +112,7 @@ export default function EditRoutineScreen() {
             <Text variant="titleMedium">{item.name}</Text>
             <View style={styles.bottomRow}>
               <TextInput
-                label="Sets"
+                label={i18n.t("set", { count: 2 })}
                 value={item.sets}
                 onChangeText={(text) => updateSets(item.id, text)}
                 mode="outlined"
@@ -119,7 +120,7 @@ export default function EditRoutineScreen() {
                 keyboardType="numeric"
               />
               <TextInput
-                label="Reps"
+                label={i18n.t("reps")}
                 value={item.reps}
                 onChangeText={(text) => updateReps(item.id, text)}
                 mode="outlined"
@@ -144,12 +145,13 @@ export default function EditRoutineScreen() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={[styles.container, { backgroundColor: theme.colors.background }]}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-      >
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+    >
+      {/* FIX: Add a wrapping View with flex: 1 for the list */}
+      <View style={{ flex: 1 }}>
         <DraggableFlatList
           data={exercises}
           onDragEnd={({ data }) => setBuilderExercises(data)}
@@ -159,7 +161,7 @@ export default function EditRoutineScreen() {
           ListHeaderComponent={
             <View style={{ paddingHorizontal: PADDING_HORIZONTAL }}>
               <TextInput
-                label="Routine Name"
+                label={i18n.t("routineName")}
                 value={routineName}
                 onChangeText={setRoutineName}
                 mode="outlined"
@@ -167,7 +169,7 @@ export default function EditRoutineScreen() {
               />
 
               <Text variant="titleLarge" style={styles.title}>
-                Assign to a day (optional)
+                {i18n.t("assignDay")}
               </Text>
               <View style={styles.chipContainer}>
                 {days.map((day) => {
@@ -194,14 +196,14 @@ export default function EditRoutineScreen() {
                         )
                       }
                     >
-                      {day}
+                      {i18n.t(`days.${day.toLowerCase()}` as any)}
                     </Chip>
                   );
                 })}
               </View>
 
               <Text variant="titleLarge" style={styles.exercisesTitle}>
-                Exercises
+                {i18n.t("exercises")}
               </Text>
             </View>
           }
@@ -211,22 +213,17 @@ export default function EditRoutineScreen() {
               onPress={() => router.push("/select-exercises")}
               style={styles.addExerciseButton}
             >
-              Add Exercises
+              {i18n.t("addExercises")}
             </Button>
           }
         />
-
-        <SafeAreaView edges={["bottom"]}>
-          <Button
-            mode="contained"
-            onPress={handleSave}
-            style={styles.saveButton}
-          >
-            Save Changes
-          </Button>
-        </SafeAreaView>
-      </KeyboardAvoidingView>
-    </GestureHandlerRootView>
+      </View>
+      <SafeAreaView edges={["bottom"]}>
+        <Button mode="contained" onPress={handleSave} style={styles.saveButton}>
+          {i18n.t("saveChanges")}
+        </Button>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 

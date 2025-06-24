@@ -8,6 +8,7 @@ interface RoutineBuilderContextType {
   exercises: Exercise[];
   addExercise: (exercise: ExerciseData) => void;
   removeExercise: (exerciseId: string) => void;
+  toggleExercise: (exercise: ExerciseData) => void;
   updateSets: (exerciseId: string, sets: string) => void;
   updateReps: (exerciseId: string, reps: string) => void;
   startBuilding: (initialRoutine?: { name: string; exercises: Exercise[] }) => void;
@@ -20,6 +21,20 @@ const RoutineBuilderContext = createContext<RoutineBuilderContextType>({} as any
 export const RoutineBuilderProvider = ({ children }: { children: ReactNode }) => {
   const [routineName, setRoutineName] = useState('');
   const [exercises, setExercises] = useState<Exercise[]>([]);
+
+  const toggleExercise = useCallback((exerciseData: ExerciseData) => {
+    setExercises(current => {
+      const existingIndex = current.findIndex(e => e.id === exerciseData.id)
+      if (existingIndex > -1) {
+        const newExercises = [...current]
+        newExercises.splice(existingIndex, 1)
+        return newExercises
+      } else {
+        const newExercise: Exercise = {...exerciseData, sets:'3', reps:'10'}
+        return [...current, newExercise]
+      }
+    })
+  }, [])
 
   const addExercise = useCallback((exercise: ExerciseData) => {
     setExercises(current => {
@@ -56,7 +71,7 @@ export const RoutineBuilderProvider = ({ children }: { children: ReactNode }) =>
   }, []) 
 
   const value = {
-    routineName, setRoutineName, exercises, addExercise, removeExercise,
+    routineName, setRoutineName, exercises, toggleExercise, addExercise, removeExercise,
     updateSets, updateReps, startBuilding, clearBuilder, setBuilderExercises
   };
 
