@@ -2,7 +2,8 @@
   "project_info": {
     "project_number": "238840063069",
     "project_id": "gym-tracker-3454d",
-    "storage_bucket": "gym-tracker-3454d.firebasestorage.app"
+    "storage_bucket": "gym-tracker-3454d.firebasestorage.app",
+    "firebase_url": "https://gym-tracker-3454d-default-rtdb.firebaseio.com"
   },
   "client": [
     {
@@ -26,4 +27,4 @@
     }
   ],
   "configuration_version": "1"
-}
+} 

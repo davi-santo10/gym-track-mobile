@@ -1,3 +1,4 @@
+import { FirebaseTest } from "@/components/FirebaseTest";
 import { useActiveWorkout } from "@/context/ActiveWorkoutContext";
 import { useRoutines } from "@/context/RoutinesContext";
 import { useSettings } from "@/context/SettingsContext";
@@ -238,6 +239,8 @@ export function HomeScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        <FirebaseTest />
+
         <Card style={[styles.card, styles.mainCard]} elevation={2}>
           {activeWorkout ? (
             <Card.Content style={styles.cardContent}>

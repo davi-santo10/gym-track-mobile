@@ -5,9 +5,6 @@ import { enableFreeze } from "react-native-screens";
 // Disable screen freezing to prevent touch issues on real devices
 enableFreeze(false);
 
-// Initialize Firebase first before any other imports
-import "@/config/firebase";
-
 import { ActiveWorkoutProvider } from "@/context/ActiveWorkoutContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { ExercisesProvider } from "@/context/ExercisesContext";
