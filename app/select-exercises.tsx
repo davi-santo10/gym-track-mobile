@@ -8,9 +8,9 @@ import i18n from "@/lib/i18n";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
 import {
-  FlatList,
   Platform,
   Pressable,
+  SectionList,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -33,10 +33,24 @@ export default function SelectExercisesScreen() {
     [localSelectedExercises]
   );
 
-  const filteredExercises = useMemo(() => {
-    return exerciseLibrary.filter((exercise) =>
+  const sections = useMemo(() => {
+    const filtered = exerciseLibrary.filter((exercise) =>
       exercise.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    const grouped = filtered.reduce((acc, exercise) => {
+      const group = exercise.muscleGroup;
+      if (!acc[group]) {
+        acc[group] = [];
+      }
+      acc[group].push(exercise);
+      return acc;
+    }, {} as Record<string, ExerciseData[]>);
+
+    return Object.keys(grouped).map((muscleGroup) => ({
+      title: muscleGroup,
+      data: grouped[muscleGroup],
+    }));
   }, [exerciseLibrary, searchQuery]);
 
   const handleExerciseToggle = useCallback((item: ExerciseData) => {
@@ -48,8 +62,11 @@ export default function SelectExercisesScreen() {
         newExercises.splice(existingIndex, 1);
         return newExercises;
       } else {
-        // Add exercise with default values
-        const newExercise: Exercise = { ...item, sets: "3", reps: "10" };
+        // Add exercise with default values based on type
+        const newExercise: Exercise =
+          item.type === "cardio"
+            ? { ...item, duration: "30" } // 30 minutes default for cardio
+            : { ...item, sets: "3", reps: "10" }; // Default for strength
         return [...current, newExercise];
       }
     });
@@ -114,7 +131,8 @@ export default function SelectExercisesScreen() {
                 variant="bodyMedium"
                 style={{ color: theme.colors.onSurfaceVariant }}
               >
-                {item.muscleGroup}
+                {item.muscleGroup} •{" "}
+                {item.type === "cardio" ? "Cardio" : "Strength"}
               </Text>
             </View>
             <Checkbox status={isSelected ? "checked" : "unchecked"} />
@@ -123,6 +141,25 @@ export default function SelectExercisesScreen() {
       );
     },
     [selectedExerciseIds, handleExerciseToggle, theme.colors]
+  );
+
+  const renderSectionHeader = useCallback(
+    ({ section: { title } }: { section: { title: string } }) => (
+      <View
+        style={[
+          styles.sectionHeaderContainer,
+          { backgroundColor: theme.colors.background },
+        ]}
+      >
+        <Text
+          variant="titleMedium"
+          style={[styles.sectionHeaderText, { color: theme.colors.primary }]}
+        >
+          {title}
+        </Text>
+      </View>
+    ),
+    [theme.colors]
   );
 
   return (
@@ -138,11 +175,12 @@ export default function SelectExercisesScreen() {
         />
       </View>
 
-      <FlatList
-        data={filteredExercises}
+      <SectionList
+        sections={sections}
         keyExtractor={(item) => item.id}
         extraData={selectedExerciseIds}
         renderItem={renderExerciseItem}
+        renderSectionHeader={renderSectionHeader}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         // Optimized for immediate responsiveness
@@ -153,11 +191,6 @@ export default function SelectExercisesScreen() {
         maxToRenderPerBatch={50}
         updateCellsBatchingPeriod={10}
         initialNumToRender={20}
-        getItemLayout={(data, index) => ({
-          length: 88, // minHeight + marginBottom
-          offset: 88 * index,
-          index,
-        })}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
             <Text variant="bodyMedium">
@@ -204,20 +237,29 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    flex: 1,
   },
   textContainer: {
     flex: 1,
     marginRight: 16,
   },
+  sectionHeaderContainer: {
+    paddingHorizontal: 0,
+    paddingTop: 24,
+    paddingBottom: 8,
+  },
+  sectionHeaderText: {
+    fontWeight: "bold",
+  },
   emptyContainer: {
-    marginTop: 50,
+    flex: 1,
     alignItems: "center",
+    justifyContent: "center",
+    marginTop: 50,
   },
   fab: {
     position: "absolute",
     margin: 16,
     right: 0,
-    bottom: 16,
+    bottom: 0,
   },
 });

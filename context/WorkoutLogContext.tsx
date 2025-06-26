@@ -1,100 +1,148 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { SetProgress} from '@/context/ActiveWorkoutContext'
+import React, {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { Exercise } from "./RoutinesContext";
+import { useSettings } from "./SettingsContext";
+
+// Updated progress type to handle both strength and cardio
+export interface LogSetProgress {
+  reps: number;
+  weight: number;
+  duration: number; // For cardio exercises
+  completed?: boolean;
+}
 
 export interface WorkoutLog {
-	id: string;
-	date: number;
-	routineName:string;
-	duration:number;
-	exercises: Array<{
-		details: Exercise;
-		progress: SetProgress[]
-	}>
+  routineId: string;
+  sets: any;
+  id: string;
+  date: number;
+  routineName: string;
+  duration: number;
+  exercises: Array<{
+    details: Exercise;
+    progress: LogSetProgress[];
+  }>;
 }
 
 export interface WorkoutSummary {
-	id: string;
-	duration: number;
-	totalWeight: number;
+  id: string;
+  duration: number;
+  totalWeight: number;
+  totalSets: number;
 }
 
 interface WorkoutLogContextType {
-	logs: WorkoutLog[]
-	lastWorkoutSummary: WorkoutSummary | null;
-	setLastWorkoutSummary: (summary: WorkoutSummary | null) => void;
-	addWorkoutLog: (log: Omit<WorkoutLog, 'id' | 'date'>) => void
-	deleteWorkoutLog: (logId: string) => void
-	clearAllLogs: () => void
+  logs: WorkoutLog[];
+  setLastWorkoutSummary: (summary: WorkoutSummary) => void;
+  consumeLastWorkoutSummary: () => WorkoutSummary | null;
+  addWorkoutLog: (log: Omit<WorkoutLog, "id">) => void;
+  deleteWorkoutLog: (logId: string) => void;
+  clearAllLogs: () => void;
+  // Unit conversion helpers for displaying weights from logs
+  getDisplayWeightFromLog: (weight: number) => number;
+  getCurrentWeightUnit: () => string;
 }
 
-const WorkoutLogContext = createContext<WorkoutLogContextType>({} as any)
-const LOGS_STORAGE_KEY = 'my-gym-tracker-workout-logs'
+const WorkoutLogContext = createContext<WorkoutLogContextType>({} as any);
+const LOGS_STORAGE_KEY = "my-gym-tracker-workout-logs";
 
-export const WorkoutLogProvider = ({ children } : { children: ReactNode }) => {
-	const [logs, setLogs] = useState<WorkoutLog[]>([])
-	const [ lastWorkoutSummary, setLastWorkoutSummary] = useState<WorkoutSummary | null>(null)
-	const [isDataLoaded, setIsDataLoaded] = useState(false)
+export const WorkoutLogProvider = ({ children }: { children: ReactNode }) => {
+  const { settings, convertWeight } = useSettings();
+  const [logs, setLogs] = useState<WorkoutLog[]>([]);
+  const [lastWorkoutSummary, setLastWorkoutSummary] =
+    useState<WorkoutSummary | null>(null);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
 
-	useEffect(() => {
-		const loadLogs = async () => {
-			try {
-				const storedLogs = await AsyncStorage.getItem(LOGS_STORAGE_KEY)
-				if (storedLogs !== null) {
-					setLogs(JSON.parse(storedLogs))
-				}
-			} catch (e) {
-				console.error("Failed to load workout logs.", e)
+  useEffect(() => {
+    const loadLogs = async () => {
+      try {
+        const storedLogs = await AsyncStorage.getItem(LOGS_STORAGE_KEY);
+        if (storedLogs !== null) {
+          setLogs(JSON.parse(storedLogs));
+        }
+      } catch (e) {
+        console.error("Failed to load workout logs.", e);
+      } finally {
+        setIsDataLoaded(true);
+      }
+    };
+    loadLogs();
+  }, []);
 
-			} finally {
-				setIsDataLoaded(true)
-			}
-		}
-		loadLogs()
-	}, [])
+  useEffect(() => {
+    if (!isDataLoaded) return;
+    const saveLogs = async () => {
+      try {
+        await AsyncStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(logs));
+      } catch (e) {
+        console.error("Failed to save workout logs.", e);
+      }
+    };
+    saveLogs();
+  }, [logs, isDataLoaded]);
 
-	useEffect (() => {
-		if (!isDataLoaded) return;
-		const saveLogs = async () => {
-			try {
-				await AsyncStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(logs))
-			} catch (e) {
-				console.error("Failed to save workout logs.", e)
-			}
-		}
-		saveLogs ();
-	}, [logs, isDataLoaded])
+  const addWorkoutLog = useCallback((logData: Omit<WorkoutLog, "id">) => {
+    const newLog: WorkoutLog = {
+      ...logData,
+      id: `log-${Date.now()}`,
+    };
+    setLogs((currentLogs) => [newLog, ...currentLogs]);
+  }, []);
 
-	const addWorkoutLog = useCallback((logData: Omit<WorkoutLog, 'id' | 'date'>) => {
-		const newLog: WorkoutLog = {
-			...logData,
-			id: `log-${Date.now()}`,
-			date: Date.now()
-		}
-		setLogs(currentLogs => [newLog, ...currentLogs])
-	}, [])
+  const deleteWorkoutLog = useCallback((logId: string) => {
+    setLogs((currentLogs) => currentLogs.filter((log) => log.id !== logId));
+  }, []);
 
-	const deleteWorkoutLog = useCallback((logId: string) => {
-		setLogs(currentLogs => currentLogs.filter(log => log.id !== logId))
-	}, [])
+  const clearAllLogs = useCallback(async () => {
+    try {
+      await AsyncStorage.removeItem(LOGS_STORAGE_KEY);
+      setLogs([]);
+    } catch (e) {
+      console.error("Failed to clear workout logs.", e);
+    }
+  }, []);
 
-	const clearAllLogs = useCallback(async () => {
-		try {
-			await AsyncStorage.removeItem(LOGS_STORAGE_KEY)
-			setLogs([])
-		} catch (e) {
-			console.error("Failed to clear workout logs.", e)
-		}
-	}, [])
+  const consumeLastWorkoutSummary = useCallback(() => {
+    const summary = lastWorkoutSummary;
+    setLastWorkoutSummary(null);
+    return summary;
+  }, [lastWorkoutSummary]);
 
-	const value = { logs, addWorkoutLog,deleteWorkoutLog, clearAllLogs, lastWorkoutSummary, setLastWorkoutSummary }
+  // Unit conversion helper - weights are stored as kg in logs
+  const getDisplayWeightFromLog = useCallback(
+    (weight: number): number => {
+      return convertWeight(weight, "kg", settings.units.weightUnit);
+    },
+    [convertWeight, settings.units.weightUnit]
+  );
 
-	return (
-		<WorkoutLogContext.Provider value={value}>
-			{children}
-		</WorkoutLogContext.Provider>
-	)
-}
+  const getCurrentWeightUnit = useCallback((): string => {
+    return settings.units.weightUnit;
+  }, [settings.units.weightUnit]);
 
-export const useWorkoutLog = () => useContext(WorkoutLogContext)
+  const value = {
+    logs,
+    addWorkoutLog,
+    deleteWorkoutLog,
+    clearAllLogs,
+    setLastWorkoutSummary,
+    consumeLastWorkoutSummary,
+    getDisplayWeightFromLog,
+    getCurrentWeightUnit,
+  };
+
+  return (
+    <WorkoutLogContext.Provider value={value}>
+      {children}
+    </WorkoutLogContext.Provider>
+  );
+};
+
+export const useWorkoutLog = () => useContext(WorkoutLogContext);

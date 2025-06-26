@@ -1,4 +1,5 @@
 // davi-santo10/gym-track-mobile/gym-track-mobile-a3c082c6a5f179f164780a4960a695da27fed457/app/add-routine.tsx
+import { RestTimePicker } from "@/components/ui/RestTimePicker";
 import { useRoutineBuilder } from "@/context/RoutineBuilderContext";
 import { DayOfWeek, Exercise, useRoutines } from "@/context/RoutinesContext";
 import i18n from "@/lib/i18n"; // Import i18n
@@ -6,7 +7,6 @@ import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Dimensions,
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -24,7 +24,6 @@ import {
   TextInput,
   useTheme,
 } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const days: DayOfWeek[] = [
   "Sunday",
@@ -53,6 +52,8 @@ export default function AddRoutineScreen() {
     exercises,
     updateSets,
     updateReps,
+    updateDuration,
+    updateRestTime,
     removeExercise,
     startBuilding,
     clearBuilder,
@@ -60,6 +61,11 @@ export default function AddRoutineScreen() {
   } = useRoutineBuilder();
 
   const [selectedDay, setSelectedDay] = useState<DayOfWeek | undefined>();
+  const [expandedExercises, setExpandedExercises] = useState<Set<string>>(
+    new Set()
+  );
+  const [restTimePickerVisible, setRestTimePickerVisible] = useState(false);
+  const [currentExerciseId, setCurrentExerciseId] = useState<string>("");
 
   useEffect(() => {
     startBuilding();
@@ -76,8 +82,48 @@ export default function AddRoutineScreen() {
     router.back();
   };
 
+  const toggleExerciseExpanded = (exerciseId: string) => {
+    setExpandedExercises((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(exerciseId)) {
+        newSet.delete(exerciseId);
+      } else {
+        newSet.add(exerciseId);
+      }
+      return newSet;
+    });
+  };
+
+  const openRestTimePicker = (exerciseId: string) => {
+    setCurrentExerciseId(exerciseId);
+    setRestTimePickerVisible(true);
+  };
+
+  const handleRestTimeChange = (restTime: number) => {
+    if (currentExerciseId) {
+      updateRestTime(currentExerciseId, restTime);
+    }
+  };
+
+  const formatRestTime = (seconds?: number): string => {
+    if (!seconds) return String(i18n.t("restTime"));
+    if (seconds < 60) {
+      return `${seconds}s`;
+    } else {
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      if (remainingSeconds === 0) {
+        return `${minutes}m`;
+      } else {
+        return `${minutes}m ${remainingSeconds}s`;
+      }
+    }
+  };
+
   const renderItem = useCallback(
     ({ item, drag, isActive }: RenderItemParams<Exercise>) => {
+      const isExpanded = expandedExercises.has(item.id);
+
       return (
         <View
           style={[
@@ -97,23 +143,14 @@ export default function AddRoutineScreen() {
             <IconButton icon="drag-vertical" size={28} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
-            <Text variant="titleMedium">{item.name}</Text>
-            <View style={styles.bottomRow}>
-              <TextInput
-                label={i18n.t("set", { count: 2 })}
-                value={item.sets}
-                onChangeText={(text) => updateSets(item.id, text)}
-                mode="outlined"
-                style={styles.setsInput}
-                keyboardType="numeric"
-              />
-              <TextInput
-                label={i18n.t("reps")}
-                value={item.reps}
-                onChangeText={(text) => updateReps(item.id, text)}
-                mode="outlined"
-                style={styles.repsInput}
-                keyboardType="numeric"
+            <View style={styles.exerciseHeader}>
+              <Text variant="titleMedium" style={{ flex: 1 }}>
+                {item.name}
+              </Text>
+              <IconButton
+                icon={isExpanded ? "chevron-up" : "chevron-down"}
+                size={20}
+                onPress={() => toggleExerciseExpanded(item.id)}
               />
               <IconButton
                 icon="delete-outline"
@@ -121,11 +158,76 @@ export default function AddRoutineScreen() {
                 style={styles.deleteButton}
               />
             </View>
+
+            <View style={styles.bottomRow}>
+              {item.type === "cardio" ? (
+                // Cardio exercise UI
+                <TextInput
+                  label={i18n.t("targetDuration")}
+                  value={item.duration || ""}
+                  onChangeText={(text) => updateDuration(item.id, text)}
+                  mode="outlined"
+                  style={styles.durationInput}
+                  keyboardType="numeric"
+                />
+              ) : (
+                // Strength exercise UI
+                <>
+                  <TextInput
+                    label={i18n.t("set", { count: 2 })}
+                    value={item.sets || ""}
+                    onChangeText={(text) => updateSets(item.id, text)}
+                    mode="outlined"
+                    style={styles.setsInput}
+                    keyboardType="numeric"
+                  />
+                  <TextInput
+                    label={i18n.t("reps")}
+                    value={item.reps || ""}
+                    onChangeText={(text) => updateReps(item.id, text)}
+                    mode="outlined"
+                    style={styles.repsInput}
+                    keyboardType="numeric"
+                  />
+                </>
+              )}
+            </View>
+
+            {/* Collapsible Rest Time Section */}
+            {isExpanded && (
+              <View style={styles.expandedSection}>
+                <TouchableOpacity
+                  style={[
+                    styles.restTimeButton,
+                    { borderColor: theme.colors.outline },
+                  ]}
+                  onPress={() => openRestTimePicker(item.id)}
+                >
+                  <Text
+                    variant="bodyMedium"
+                    style={{ color: theme.colors.onSurface }}
+                  >
+                    {formatRestTime(item.restTime)}
+                  </Text>
+                  <IconButton icon="chevron-right" size={16} />
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </View>
       );
     },
-    [theme.colors, updateSets, updateReps, removeExercise]
+    [
+      theme.colors,
+      updateSets,
+      updateReps,
+      updateDuration,
+      removeExercise,
+      expandedExercises,
+      toggleExerciseExpanded,
+      openRestTimePicker,
+      formatRestTime,
+    ]
   );
 
   return (
@@ -134,6 +236,19 @@ export default function AddRoutineScreen() {
       style={[styles.container, { backgroundColor: theme.colors.background }]}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
+      {/* Rest Time Picker */}
+      <RestTimePicker
+        visible={restTimePickerVisible}
+        onDismiss={() => setRestTimePickerVisible(false)}
+        onTimeChange={handleRestTimeChange}
+        initialTime={
+          currentExerciseId
+            ? exercises.find((e) => e.id === currentExerciseId)?.restTime || 60
+            : 60
+        }
+        title={String(i18n.t("restBetweenSets"))}
+      />
+
       {/* FIX: Add a wrapping View with flex: 1 for the list */}
       <View style={{ flex: 1 }}>
         <DraggableFlatList
@@ -185,30 +300,34 @@ export default function AddRoutineScreen() {
                 })}
               </View>
 
-              <Text variant="titleLarge" style={styles.exercisesTitle}>
+              <Text variant="titleLarge" style={styles.title}>
                 {i18n.t("exercises")}
               </Text>
             </View>
           }
           ListFooterComponent={
-            <Button
-              mode="elevated"
-              onPress={() => {
-                Keyboard.dismiss();
-                router.push("/select-exercises");
-              }}
-              style={styles.addExerciseButton}
-            >
-              {i18n.t("addExercises")}
-            </Button>
+            <View style={{ paddingHorizontal: PADDING_HORIZONTAL }}>
+              <Button
+                mode="outlined"
+                onPress={() => router.push("/select-exercises")}
+                style={styles.addButton}
+                icon="plus"
+              >
+                {i18n.t("addExercises")}
+              </Button>
+
+              <Button
+                mode="contained"
+                onPress={handleSave}
+                style={styles.saveButton}
+                disabled={!routineName.trim() || exercises.length === 0}
+              >
+                {i18n.t("saveRoutine")}
+              </Button>
+            </View>
           }
         />
       </View>
-      <SafeAreaView edges={["bottom"]}>
-        <Button mode="contained" onPress={handleSave} style={styles.saveButton}>
-          {i18n.t("saveRoutine")}
-        </Button>
-      </SafeAreaView>
     </KeyboardAvoidingView>
   );
 }
@@ -250,14 +369,36 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: 60,
   },
+  exerciseHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
   bottomRow: { flexDirection: "row", alignItems: "center", marginTop: 12 },
   setsInput: { flex: 1 },
   repsInput: { flex: 1, marginHorizontal: 8 },
+  durationInput: { flex: 2, marginRight: 8 },
   deleteButton: { margin: 0 },
-  addExerciseButton: {
-    marginTop: 8,
-    alignSelf: "flex-start",
-    marginHorizontal: PADDING_HORIZONTAL,
+  expandedSection: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(0,0,0,0.1)",
   },
-  saveButton: { marginHorizontal: 16, marginVertical: 8, paddingVertical: 8 },
+  restTimeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 12,
+    borderWidth: 1,
+    borderRadius: 8,
+  },
+  addButton: {
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  saveButton: {
+    marginTop: 8,
+    paddingVertical: 8,
+  },
 });

@@ -1,17 +1,24 @@
-import { useRoutines } from "@/context/RoutinesContext";
-import { router, useLocalSearchParams, useNavigation } from "expo-router";
-import React, { useEffect, useCallback } from "react";
-import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native";
-import { Card, FAB, IconButton, Text, useTheme } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useActiveWorkout } from "@/context/ActiveWorkoutContext";
+import { useRoutines } from "@/context/RoutinesContext";
 import { useWorkoutLog } from "@/context/WorkoutLogContext";
 import i18n from "@/lib/i18n";
+import { router, useLocalSearchParams, useNavigation } from "expo-router";
+import React, { useCallback, useEffect } from "react";
+import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native";
+import {
+  AnimatedFAB,
+  Card,
+  FAB,
+  IconButton,
+  Text,
+  useTheme,
+} from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ViewRoutineScreen() {
   const theme = useTheme();
-  const { startWorkout } = useActiveWorkout()
-  const { logs } = useWorkoutLog()
+  const { startWorkout, activeWorkout } = useActiveWorkout();
+  const { logs } = useWorkoutLog();
   const navigation = useNavigation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { routines } = useRoutines();
@@ -21,7 +28,7 @@ export default function ViewRoutineScreen() {
   useEffect(() => {
     if (routine) {
       navigation.setOptions({
-        title: i18n.t('routineDetails'),
+        title: i18n.t("routineDetails"),
         headerRight: () => (
           <IconButton
             icon="pencil-outline"
@@ -35,11 +42,11 @@ export default function ViewRoutineScreen() {
   }, [routine, navigation]);
   const handleStartWorkout = useCallback(() => {
     if (!routine) return;
-    const lastWorkoutLog = logs.find(log => log.routineName === routine.name)
+    const lastWorkoutLog = logs.find((log) => log.routineName === routine.name);
 
-    startWorkout(routine, lastWorkoutLog)
-    router.push(`/active-workout`)
-  }, [routine, logs, startWorkout, router])
+    startWorkout(routine, lastWorkoutLog);
+    router.push(`/active-workout`);
+  }, [routine, logs, startWorkout]);
 
   if (!routine) {
     return <ActivityIndicator style={{ flex: 1 }} />;
@@ -60,7 +67,7 @@ export default function ViewRoutineScreen() {
               {routine.name}
             </Text>
             <Text variant="titleLarge" style={styles.exercisesHeader}>
-              {i18n.t('exercises')}
+              {String(i18n.t("exercises"))}
             </Text>
           </View>
         )}
@@ -70,11 +77,13 @@ export default function ViewRoutineScreen() {
               <Text variant="titleMedium">{item.name}</Text>
               <View style={styles.statsContainer}>
                 <View style={styles.stat}>
-                  <Text variant="labelLarge">{i18n.t('set', { count: 2})}</Text>
+                  <Text variant="labelLarge">
+                    {String(i18n.t("set", { count: 2 }))}
+                  </Text>
                   <Text variant="bodyLarge">{item.sets}</Text>
                 </View>
                 <View style={styles.stat}>
-                  <Text variant="labelLarge">{i18n.t('reps')}</Text>
+                  <Text variant="labelLarge">{String(i18n.t("reps"))}</Text>
                   <Text variant="bodyLarge">{item.reps}</Text>
                 </View>
               </View>
@@ -83,12 +92,24 @@ export default function ViewRoutineScreen() {
         )}
       />
 
-      <FAB
-        icon="play"
-        label={i18n.t('startWorkout')}
-        style={styles.fab}
-        onPress={handleStartWorkout}
-      />
+      {activeWorkout ? (
+        <AnimatedFAB
+          icon="play-circle-outline"
+          label={String(i18n.t("resumeWorkout"))}
+          extended
+          onPress={() => router.push("/active-workout")}
+          visible={true}
+          style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+          color={theme.colors.onPrimary}
+        />
+      ) : (
+        <FAB
+          icon="play"
+          label={String(i18n.t("startWorkout"))}
+          style={styles.fab}
+          onPress={handleStartWorkout}
+        />
+      )}
     </SafeAreaView>
   );
 }

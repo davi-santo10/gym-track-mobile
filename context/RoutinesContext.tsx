@@ -1,3 +1,4 @@
+import { ExerciseType, MuscleGroup } from "@/data/exercises";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
   createContext,
@@ -7,16 +8,26 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { MuscleGroup } from "@/data/exercises";
 
-export type DayOfWeek = 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
+export type DayOfWeek =
+  | "Sunday"
+  | "Monday"
+  | "Tuesday"
+  | "Wednesday"
+  | "Thursday"
+  | "Friday"
+  | "Saturday";
 
 export interface Exercise {
   id: string;
   name: string;
   muscleGroup: MuscleGroup;
-  sets: string;
-  reps: string;
+  type: ExerciseType;
+  // For strength exercises
+  sets?: string;
+  reps?: string;
+  // For cardio exercises
+  duration?: string; // in minutes
   restTime?: number;
   imageUrl?: string;
 }
@@ -30,7 +41,11 @@ export interface Routine {
 
 interface RoutinesContextType {
   routines: Routine[];
-  addRoutine: (name: string, exercises: Omit<Exercise, "id">[], day?: DayOfWeek) => void;
+  addRoutine: (
+    name: string,
+    exercises: Omit<Exercise, "id">[],
+    day?: DayOfWeek
+  ) => void;
   editRoutine: (name: string, updatedData: Omit<Routine, "id">) => void;
   deleteRoutine: (routineId: string) => void;
 }

@@ -1,11 +1,18 @@
 import { useExercises } from "@/context/ExercisesContext";
-import { MuscleGroup } from "@/data/exercises";
+import { ExerciseType, MuscleGroup } from "@/data/exercises";
+import i18n from "@/lib/i18n";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { Button, Chip, Text, TextInput, useTheme } from "react-native-paper";
+import {
+  Button,
+  Chip,
+  SegmentedButtons,
+  Text,
+  TextInput,
+  useTheme,
+} from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import i18n from "@/lib/i18n";
 
 const muscleGroupOptions: MuscleGroup[] = [
   "Chest",
@@ -18,6 +25,7 @@ const muscleGroupOptions: MuscleGroup[] = [
   "Quadriceps",
   "Hamstrings",
   "Calves",
+  "Cardio",
 ];
 
 export default function AddExerciseScreen() {
@@ -26,14 +34,21 @@ export default function AddExerciseScreen() {
 
   const [name, setName] = useState("");
   const [muscleGroup, setMuscleGroup] = useState<MuscleGroup>();
+  const [exerciseType, setExerciseType] = useState<ExerciseType>("strength");
 
   const handleSave = () => {
     if (!name.trim() || !muscleGroup) {
       return;
     }
-    addCustomExercise(name, muscleGroup);
+    addCustomExercise(name, muscleGroup, exerciseType);
     router.back();
   };
+
+  // Filter muscle groups based on exercise type
+  const availableMuscleGroups =
+    exerciseType === "cardio"
+      ? (["Cardio"] as MuscleGroup[])
+      : muscleGroupOptions.filter((group) => group !== "Cardio");
 
   return (
     <SafeAreaView
@@ -41,7 +56,7 @@ export default function AddExerciseScreen() {
     >
       <View style={styles.content}>
         <TextInput
-          label={i18n.t('exerciseName')}
+          label={i18n.t("exerciseName")}
           value={name}
           onChangeText={setName}
           mode="outlined"
@@ -49,11 +64,34 @@ export default function AddExerciseScreen() {
         />
 
         <Text variant="titleMedium" style={styles.label}>
-          {i18n.t('muscleGroup')}
+          Exercise Type
+        </Text>
+        <SegmentedButtons
+          value={exerciseType}
+          onValueChange={(value) => {
+            setExerciseType(value as ExerciseType);
+            // Reset muscle group when changing exercise type
+            setMuscleGroup(undefined);
+          }}
+          buttons={[
+            {
+              value: "strength",
+              label: "Strength",
+            },
+            {
+              value: "cardio",
+              label: "Cardio",
+            },
+          ]}
+          style={styles.segmentedButtons}
+        />
+
+        <Text variant="titleMedium" style={styles.label}>
+          {i18n.t("muscleGroup")}
         </Text>
 
         <View style={styles.chipContainer}>
-          {muscleGroupOptions.map((group) => (
+          {availableMuscleGroups.map((group) => (
             <Chip
               key={group}
               mode="outlined"
@@ -73,7 +111,7 @@ export default function AddExerciseScreen() {
           onPress={handleSave}
           contentStyle={styles.buttonContent}
         >
-          {i18n.t('saveExercise')}
+          {i18n.t("saveExercise")}
         </Button>
       </View>
     </SafeAreaView>
@@ -94,13 +132,15 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 24,
   },
+  segmentedButtons: {
+    marginBottom: 24,
+  },
   chipContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8, 
+    gap: 8,
   },
-  chip: {
-  },
+  chip: {},
   buttonContainer: {
     padding: 16,
   },

@@ -1,3 +1,4 @@
+import { useRoutines } from "@/context/RoutinesContext";
 import { useWorkoutLog } from "@/context/WorkoutLogContext";
 import i18n from "@/lib/i18n";
 import { router } from "expo-router";
@@ -6,7 +7,6 @@ import { FlatList, StyleSheet, View } from "react-native";
 import { Appbar, List, SegmentedButtons, Text } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// This is the view for your workout logs, extracted from the old HistoryScreen
 const LogbookView = () => {
   const { logs } = useWorkoutLog();
 
@@ -40,8 +40,8 @@ const LogbookView = () => {
       )}
       ListEmptyComponent={() => (
         <View style={styles.emptyContainer}>
-          <Text variant="bodyMedium">{i18n.t('noWorkoutLogs')}</Text>
-          <Text variant="bodySmall">{i18n.t('finishAWorkout')}</Text>
+          <Text variant="bodyMedium">{i18n.t("noWorkoutLogs")}</Text>
+          <Text variant="bodySmall">{i18n.t("finishAWorkout")}</Text>
         </View>
       )}
     />
@@ -50,21 +50,44 @@ const LogbookView = () => {
 
 // This is a placeholder for your future progress charts
 const ProgressView = () => {
+  const { routines } = useRoutines();
+
+  if (routines.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text variant="headlineSmall">{i18n.t("progress")}</Text>
+        <Text variant="bodyMedium">{i18n.t("noRoutinesToTrack")}</Text>
+      </View>
+    );
+  }
   return (
-    <View style={styles.emptyContainer}>
-      <Text variant="headlineSmall">{i18n.t('progress')}</Text>
-      <Text variant="bodyMedium">{i18n.t('progressComingSoon')}</Text>
-    </View>
+    <FlatList
+      data={routines}
+      keyExtractor={(item) => item.id}
+      contentContainerStyle={styles.listContent}
+      renderItem={({ item }) => (
+        <List.Item
+          title={item.name}
+          left={(props) => <List.Icon {...props} icon="chart-line" />}
+          onPress={() =>
+            router.push({
+              pathname: "/progress/[id]",
+              params: { id: item.id },
+            })
+          }
+        />
+      )}
+    />
   );
 };
 
 export function DashboardScreen() {
-  const [view, setView] = React.useState('logbook');
+  const [view, setView] = React.useState("logbook");
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+    <SafeAreaView style={styles.container} edges={["bottom", "left", "right"]}>
       <Appbar.Header>
-        <Appbar.Content title={i18n.t('dashboard')} />
+        <Appbar.Content title={i18n.t("history")} />
       </Appbar.Header>
 
       <View style={styles.segmentedButtonContainer}>
@@ -72,13 +95,13 @@ export function DashboardScreen() {
           value={view}
           onValueChange={setView}
           buttons={[
-            { value: 'logbook', label: i18n.t('logbook') },
-            { value: 'progress', label: i18n.t('progress') },
+            { value: "logbook", label: i18n.t("logbook") },
+            { value: "progress", label: i18n.t("progress") },
           ]}
         />
       </View>
 
-      {view === 'logbook' ? <LogbookView /> : <ProgressView />}
+      {view === "logbook" ? <LogbookView /> : <ProgressView />}
     </SafeAreaView>
   );
 }

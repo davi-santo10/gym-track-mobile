@@ -1,10 +1,16 @@
 import { useWorkoutLog } from "@/context/WorkoutLogContext";
+import i18n from "@/lib/i18n";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import React, { useEffect } from "react";
 import { Alert, ScrollView, StyleSheet, View } from "react-native";
-import { ActivityIndicator, Card, IconButton, Text, useTheme } from "react-native-paper";
+import {
+  ActivityIndicator,
+  Card,
+  IconButton,
+  Text,
+  useTheme,
+} from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import i18n from "@/lib/i18n";
 
 const formatDuration = (ms: number) => {
   const totalSeconds = Math.floor(ms / 1000);
@@ -17,22 +23,27 @@ export default function LogDetailScreen() {
   const theme = useTheme();
   const navigation = useNavigation();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { logs, deleteWorkoutLog } = useWorkoutLog();
+  const {
+    logs,
+    deleteWorkoutLog,
+    getDisplayWeightFromLog,
+    getCurrentWeightUnit,
+  } = useWorkoutLog();
 
   const log = logs.find((l) => l.id === id);
 
   const handleDelete = () => {
     if (!log) return;
     Alert.alert(
-      i18n.t('deleteWorkoutLogTitle'),
-      i18n.t('deleteWorkoutLogMessage'),
+      i18n.t("deleteWorkoutLogTitle"),
+      i18n.t("deleteWorkoutLogMessage"),
       [
         {
-          text: i18n.t('cancel'),
+          text: i18n.t("cancel"),
           style: "cancel",
         },
         {
-          text: i18n.t('delete'),
+          text: i18n.t("delete"),
           onPress: () => {
             deleteWorkoutLog(log.id);
             router.back();
@@ -43,18 +54,16 @@ export default function LogDetailScreen() {
     );
   };
 
-  useEffect (() => {
-	if (log) {
-		navigation.setOptions({
-			title: i18n.t('workoutDetails'),
-			headerRight: () => (
-				<IconButton
-				icon="delete-outline"
-				onPress={handleDelete} />
-			)
-		})
-	}
-  })
+  useEffect(() => {
+    if (log) {
+      navigation.setOptions({
+        title: i18n.t("workoutDetails"),
+        headerRight: () => (
+          <IconButton icon="delete-outline" onPress={handleDelete} />
+        ),
+      });
+    }
+  });
   if (!log) {
     return <ActivityIndicator style={{ flex: 1 }} />;
   }
@@ -69,7 +78,7 @@ export default function LogDetailScreen() {
           <Text variant="headlineMedium">{log.routineName}</Text>
           <Text variant="bodyLarge">{new Date(log.date).toDateString()}</Text>
           <Text variant="bodyMedium">
-            {i18n.t('duration', { duration: formatDuration(log.duration) })}
+            {i18n.t("duration", { duration: formatDuration(log.duration) })}
           </Text>
         </View>
 
@@ -82,9 +91,16 @@ export default function LogDetailScreen() {
             <Card.Content>
               {exerciseLog.progress.map((set, setIndex) => (
                 <View key={setIndex} style={styles.setRow}>
-                  <Text style={styles.setText}>{i18n.t('set')} {setIndex + 1}</Text>
-                  <Text>{i18n.t('reps', { count: parseInt(set.reps, 10)})} {set.reps}</Text>
-                  <Text>{set.weight || "0"} kg</Text>
+                  <Text style={styles.setText}>
+                    {i18n.t("set")} {setIndex + 1}
+                  </Text>
+                  <Text>
+                    {set.reps} {i18n.t("reps")}
+                  </Text>
+                  <Text>
+                    {getDisplayWeightFromLog(set.weight || 0).toFixed(1)}{" "}
+                    {getCurrentWeightUnit()}
+                  </Text>
                 </View>
               ))}
             </Card.Content>
