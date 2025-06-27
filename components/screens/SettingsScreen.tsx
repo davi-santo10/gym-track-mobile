@@ -213,7 +213,8 @@ export function SettingsScreen() {
   };
 
   const handleReportBug = () => {
-    const bugReportUrl = "https://docs.google.com/forms/d/e/1FAIpQLSc7WukV1HllIrx7YB31wXSPIWATs8-Vc8HqBySNYMPZuGusGQ/viewform?usp=sharing&ouid=105010301337217305064"; // You can replace this with your actual form URL
+    const bugReportUrl =
+      "https://docs.google.com/forms/d/e/1FAIpQLSc7WukV1HllIrx7YB31wXSPIWATs8-Vc8HqBySNYMPZuGusGQ/viewform?usp=sharing&ouid=105010301337217305064"; // You can replace this with your actual form URL
     Alert.alert(
       String(i18n.t("reportBug")),
       String(i18n.t("reportBugDescription")),
