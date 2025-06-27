@@ -1,4 +1,3 @@
-import { FirebaseTest } from "@/components/FirebaseTest";
 import { useActiveWorkout } from "@/context/ActiveWorkoutContext";
 import { useRoutines } from "@/context/RoutinesContext";
 import { useSettings } from "@/context/SettingsContext";
@@ -217,20 +216,12 @@ export function HomeScreen() {
       <Appbar.Header>
         <Appbar.Content
           title={
-            <View>
-              <Text
-                variant="headlineSmall"
-                style={{ color: theme.colors.onSurface, fontWeight: "600" }}
-              >
-                {String(i18n.t("gymTracker"))}
-              </Text>
-              <Text
-                variant="bodyMedium"
-                style={{ color: theme.colors.onSurfaceVariant, marginTop: -2 }}
-              >
-                {String(i18n.t("happyDay", { day: today }))}
-              </Text>
-            </View>
+            <Text
+              variant="headlineSmall"
+              style={{ color: theme.colors.onSurface, fontWeight: "600" }}
+            >
+              Saint Tracker
+            </Text>
           }
         />
       </Appbar.Header>
@@ -239,8 +230,6 @@ export function HomeScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <FirebaseTest />
-
         <Card style={[styles.card, styles.mainCard]} elevation={2}>
           {activeWorkout ? (
             <Card.Content style={styles.cardContent}>

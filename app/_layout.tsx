@@ -6,7 +6,7 @@ import { enableFreeze } from "react-native-screens";
 enableFreeze(false);
 
 import { ActiveWorkoutProvider } from "@/context/ActiveWorkoutContext";
-import { AuthProvider } from "@/context/AuthContext";
+
 import { ExercisesProvider } from "@/context/ExercisesContext";
 import { RoutineBuilderProvider } from "@/context/RoutineBuilderContext";
 import { RoutinesProvider } from "@/context/RoutinesContext";
@@ -21,17 +21,225 @@ import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
-import { Platform } from "react-native";
+import { Platform, Text, View } from "react-native";
 import {
   IconButton,
   MD3DarkTheme,
   MD3LightTheme,
   PaperProvider,
 } from "react-native-paper";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 SplashScreen.preventAutoHideAsync();
 const I18N_STORAGE_KEY = "my-gym-tracker-i18n-locale";
+
+// Simple Error Boundary for production
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+class ErrorBoundary extends React.Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("App Error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 20,
+          }}
+        >
+          <Text style={{ fontSize: 18, marginBottom: 10 }}>
+            Something went wrong
+          </Text>
+          <Text style={{ color: "gray", textAlign: "center" }}>
+            Please restart the app. If the problem persists, contact support.
+          </Text>
+        </View>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+function StackNavigator() {
+  const colorScheme = useColorScheme();
+  const theme = colorScheme === "dark" ? MD3DarkTheme : MD3LightTheme;
+  const insets = useSafeAreaInsets();
+
+  return (
+    <Stack
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: theme.colors.surface,
+        },
+        headerTintColor: theme.colors.onSurface,
+        animation: Platform.OS === "android" ? "slide_from_right" : "default",
+        headerTitleAlign: "center",
+        gestureEnabled: true,
+        headerTransparent: false,
+        contentStyle: {
+          backgroundColor: theme.colors.background,
+        },
+      }}
+    >
+      <Stack.Screen
+        name="index"
+        options={{
+          headerShown: false,
+          animation: "slide_from_left",
+        }}
+      />
+      <Stack.Screen
+        name="add-routine"
+        options={{
+          title: i18n.t("addNewRoutine"),
+          headerLeft: (props) => (
+            <IconButton
+              icon="arrow-left"
+              iconColor={props.tintColor}
+              onPress={() => router.back()}
+              style={{ marginLeft: -8 }}
+            />
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="edit-routine/[id]"
+        options={{
+          title: i18n.t("editRoutine"),
+          headerLeft: (props) => (
+            <IconButton
+              icon="arrow-left"
+              iconColor={props.tintColor}
+              onPress={() => router.back()}
+              style={{ marginLeft: -8 }}
+            />
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="routine/[id]"
+        options={{
+          title: i18n.t("viewRoutine"),
+          headerLeft: (props) => (
+            <IconButton
+              icon="arrow-left"
+              iconColor={props.tintColor}
+              onPress={() => router.back()}
+              style={{ marginLeft: -8 }}
+            />
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="add-exercise"
+        options={{
+          title: i18n.t("addCustomExercise"),
+          headerLeft: (props) => (
+            <IconButton
+              icon="arrow-left"
+              iconColor={props.tintColor}
+              onPress={() => router.back()}
+              style={{ marginLeft: -8 }}
+            />
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="select-exercises"
+        options={{
+          title: i18n.t("selectExercises"),
+          // Add specific options for this problematic screen
+          gestureEnabled: true,
+          animationTypeForReplace: "pop",
+          headerLeft: (props) => (
+            <IconButton
+              icon="arrow-left"
+              iconColor={props.tintColor}
+              onPress={() => router.back()}
+              style={{ marginLeft: -8 }}
+            />
+          ),
+          headerRight: () => (
+            <IconButton
+              icon="plus"
+              onPress={() => router.push("/add-exercise")}
+            />
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="active-workout"
+        options={{
+          title: i18n.t("activeWorkout"),
+          headerLeft: (props) => (
+            <IconButton
+              icon="arrow-left"
+              iconColor={props.tintColor}
+              onPress={() => router.back()}
+              style={{ marginLeft: -8 }}
+            />
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="log/[id]"
+        options={{
+          title: i18n.t("workoutDetails"),
+          headerLeft: (props) => (
+            <IconButton
+              icon="arrow-left"
+              iconColor={props.tintColor}
+              onPress={() => router.back()}
+              style={{ marginLeft: -8 }}
+            />
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="progress/[id]"
+        options={{
+          title: "Routine Progress",
+          headerLeft: (props) => (
+            <IconButton
+              icon="arrow-left"
+              iconColor={props.tintColor}
+              onPress={() => router.back()}
+              style={{ marginLeft: -8 }}
+            />
+          ),
+        }}
+      />
+    </Stack>
+  );
+}
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -47,7 +255,8 @@ export default function RootLayout() {
         i18n.locale = savedLocale || deviceLocale;
       } catch (e) {
         console.error("Failed to load language from storage", e);
-        i18n.locale = Localization.getLocales()[0]?.languageCode ?? "en";
+        // Fallback to English if there's any issue
+        i18n.locale = "en";
       }
     };
 
@@ -55,7 +264,9 @@ export default function RootLayout() {
       try {
         await loadI18n();
       } catch (e) {
-        console.warn(e);
+        console.warn("Error in prepare function:", e);
+        // Set fallback locale
+        i18n.locale = "en";
       } finally {
         if (loaded || error) {
           // Add a small delay to ensure everything is ready on real devices
@@ -75,8 +286,8 @@ export default function RootLayout() {
   const theme = colorScheme === "dark" ? MD3DarkTheme : MD3LightTheme;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <AuthProvider>
+    <ErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
         <SettingsProvider>
           <RoutinesProvider>
             <ExercisesProvider>
@@ -88,150 +299,7 @@ export default function RootLayout() {
                         <StatusBar
                           style={colorScheme === "dark" ? "light" : "dark"}
                         />
-                        <Stack
-                          screenOptions={{
-                            headerStyle: {
-                              backgroundColor: theme.colors.surface,
-                            },
-                            headerTintColor: theme.colors.onSurface,
-                            animation:
-                              Platform.OS === "android"
-                                ? "slide_from_right"
-                                : "default",
-                            headerTitleAlign: "center",
-                            // Add these to improve navigation on real devices
-                            gestureEnabled: true,
-                          }}
-                        >
-                          <Stack.Screen
-                            name="index"
-                            options={{
-                              headerShown: false,
-                              animation: "slide_from_left",
-                            }}
-                          />
-                          <Stack.Screen
-                            name="add-routine"
-                            options={{
-                              title: i18n.t("addNewRoutine"),
-                              headerLeft: (props) => (
-                                <IconButton
-                                  icon="arrow-left"
-                                  iconColor={props.tintColor}
-                                  onPress={() => router.back()}
-                                  style={{ marginLeft: -8 }}
-                                />
-                              ),
-                            }}
-                          />
-                          <Stack.Screen
-                            name="edit-routine/[id]"
-                            options={{
-                              title: i18n.t("editRoutine"),
-                              headerLeft: (props) => (
-                                <IconButton
-                                  icon="arrow-left"
-                                  iconColor={props.tintColor}
-                                  onPress={() => router.back()}
-                                  style={{ marginLeft: -8 }}
-                                />
-                              ),
-                            }}
-                          />
-                          <Stack.Screen
-                            name="routine/[id]"
-                            options={{
-                              title: i18n.t("viewRoutine"),
-                              headerLeft: (props) => (
-                                <IconButton
-                                  icon="arrow-left"
-                                  iconColor={props.tintColor}
-                                  onPress={() => router.back()}
-                                  style={{ marginLeft: -8 }}
-                                />
-                              ),
-                            }}
-                          />
-                          <Stack.Screen
-                            name="add-exercise"
-                            options={{
-                              title: i18n.t("addCustomExercise"),
-                              headerLeft: (props) => (
-                                <IconButton
-                                  icon="arrow-left"
-                                  iconColor={props.tintColor}
-                                  onPress={() => router.back()}
-                                  style={{ marginLeft: -8 }}
-                                />
-                              ),
-                            }}
-                          />
-                          <Stack.Screen
-                            name="select-exercises"
-                            options={{
-                              title: i18n.t("selectExercises"),
-                              // Add specific options for this problematic screen
-                              gestureEnabled: true,
-                              animationTypeForReplace: "pop",
-                              headerLeft: (props) => (
-                                <IconButton
-                                  icon="arrow-left"
-                                  iconColor={props.tintColor}
-                                  onPress={() => router.back()}
-                                  style={{ marginLeft: -8 }}
-                                />
-                              ),
-                              headerRight: () => (
-                                <IconButton
-                                  icon="plus"
-                                  onPress={() => router.push("/add-exercise")}
-                                />
-                              ),
-                            }}
-                          />
-                          <Stack.Screen
-                            name="active-workout"
-                            options={{
-                              title: i18n.t("activeWorkout"),
-                              headerLeft: (props) => (
-                                <IconButton
-                                  icon="arrow-left"
-                                  iconColor={props.tintColor}
-                                  onPress={() => router.back()}
-                                  style={{ marginLeft: -8 }}
-                                />
-                              ),
-                            }}
-                          />
-                          <Stack.Screen
-                            name="log/[id]"
-                            options={{
-                              title: i18n.t("workoutDetails"),
-                              headerLeft: (props) => (
-                                <IconButton
-                                  icon="arrow-left"
-                                  iconColor={props.tintColor}
-                                  onPress={() => router.back()}
-                                  style={{ marginLeft: -8 }}
-                                />
-                              ),
-                            }}
-                          />
-                          <Stack.Screen
-                            name="progress/[id]"
-                            options={{
-                              title: "Routine Progress",
-                              headerLeft: (props) => (
-                                <IconButton
-                                  icon="arrow-left"
-                                  iconColor={props.tintColor}
-                                  onPress={() => router.back()}
-                                  style={{ marginLeft: -8 }}
-                                />
-                              ),
-                            }}
-                          />
-                        </Stack>
+                        <StackNavigator />
                       </SafeAreaProvider>
                     </PaperProvider>
                   </WorkoutLogProvider>
@@ -240,7 +308,7 @@ export default function RootLayout() {
             </ExercisesProvider>
           </RoutinesProvider>
         </SettingsProvider>
-      </AuthProvider>
-    </GestureHandlerRootView>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }

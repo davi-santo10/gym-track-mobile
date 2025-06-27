@@ -1,10 +1,10 @@
 import { useWorkoutLog } from "@/context/WorkoutLogContext";
+import i18n from "@/lib/i18n";
 import { router } from "expo-router";
 import React from "react";
 import { FlatList, StyleSheet, View } from "react-native";
 import { Appbar, List, Text } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import i18n from "@/lib/i18n";
 
 export function HistoryScreen() {
   const { logs } = useWorkoutLog();
@@ -21,7 +21,7 @@ export function HistoryScreen() {
   return (
     <SafeAreaView style={styles.container} edges={["bottom", "left", "right"]}>
       <Appbar.Header>
-        <Appbar.Content title={i18n.t('workoutHistory')} />
+        <Appbar.Content title={i18n.t("workoutHistory")} />
       </Appbar.Header>
 
       <FlatList
@@ -43,8 +43,8 @@ export function HistoryScreen() {
         )}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
-            <Text variant="bodyMedium">{i18n.t('noWorkoutLogs')}</Text>
-            <Text variant="bodySmall">{i18n.t('finishAWorkout')}</Text>
+            <Text variant="bodyMedium">{i18n.t("noWorkoutLogs")}</Text>
+            <Text variant="bodySmall">{i18n.t("finishAWorkout")}</Text>
           </View>
         )}
       />

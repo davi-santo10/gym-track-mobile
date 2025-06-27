@@ -1,19 +1,27 @@
-import React, { useState, useMemo } from 'react';
-import { SectionList, StyleSheet, View } from 'react-native';
-import { Appbar, FAB, IconButton, List, Searchbar, Text, useTheme } from 'react-native-paper';
-import { useExercises } from '@/context/ExercisesContext';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ExerciseData } from '@/data/exercises';
-import { router } from 'expo-router';
-import i18n from '@/lib/i18n';
+import { useExercises } from "@/context/ExercisesContext";
+import { ExerciseData } from "@/data/exercises";
+import i18n from "@/lib/i18n";
+import { router } from "expo-router";
+import React, { useMemo, useState } from "react";
+import { SectionList, StyleSheet, View } from "react-native";
+import {
+  Appbar,
+  FAB,
+  IconButton,
+  List,
+  Searchbar,
+  Text,
+  useTheme,
+} from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export function ExercisesScreen() {
   const { exercises, deleteCustomExercise } = useExercises();
-  const [searchQuery, setSearchQuery] = useState('');
-  const theme = useTheme()
+  const [searchQuery, setSearchQuery] = useState("");
+  const theme = useTheme();
 
   const sections = useMemo(() => {
-    const filtered = exercises.filter(exercise =>
+    const filtered = exercises.filter((exercise) =>
       exercise.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -26,65 +34,70 @@ export function ExercisesScreen() {
       return acc;
     }, {} as Record<string, ExerciseData[]>);
 
-    return Object.keys(grouped).map(muscleGroup => ({
+    return Object.keys(grouped).map((muscleGroup) => ({
       title: muscleGroup,
       data: grouped[muscleGroup],
     }));
   }, [exercises, searchQuery]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+    <SafeAreaView style={styles.container} edges={["bottom", "left", "right"]}>
       <Appbar.Header>
-        <Appbar.Content title={i18n.t('exerciseLibrary')} />
+        <Appbar.Content title={i18n.t("exerciseLibrary")} />
       </Appbar.Header>
       <Searchbar
-        placeholder={i18n.t('searchExerciseLibrary')}
+        placeholder={i18n.t("searchExerciseLibrary")}
         onChangeText={setSearchQuery}
         value={searchQuery}
         style={styles.searchbar}
       />
 
       <SectionList
-        sections={sections} 
+        sections={sections}
         keyExtractor={(item, index) => item.id + index}
         contentContainerStyle={styles.listContent}
-        
         renderItem={({ item }) => (
-			<List.Item
-			  title={item.name}
-			  description={item.muscleGroup}
-			  right={() =>
-				item.id.startsWith('custom-') ? (
-				  <IconButton
-					icon="delete-outline"
-					onPress={() => deleteCustomExercise(item.id)}
-				  />
-				) :
-				null
-			  }
-			/>
-		  )}
-        
+          <List.Item
+            title={item.name}
+            description={item.muscleGroup}
+            right={() =>
+              item.id.startsWith("custom-") ? (
+                <IconButton
+                  icon="delete-outline"
+                  onPress={() => deleteCustomExercise(item.id)}
+                />
+              ) : null
+            }
+          />
+        )}
         renderSectionHeader={({ section: { title } }) => (
-			<View style={[styles.sectionHeaderContainer, { backgroundColor: theme.colors.background }]}>
-            <Text 
-              variant="titleMedium" 
-              style={[styles.sectionHeaderText, { color: theme.colors.primary }]}
+          <View
+            style={[
+              styles.sectionHeaderContainer,
+              { backgroundColor: theme.colors.background },
+            ]}
+          >
+            <Text
+              variant="titleMedium"
+              style={[
+                styles.sectionHeaderText,
+                { color: theme.colors.primary },
+              ]}
             >
               {title}
             </Text>
           </View>
         )}
         ListEmptyComponent={() => (
-            <View style={styles.emptyContainer}>
-                <Text variant='bodyMedium'>{i18n.t('noExercisesFound')}</Text>
-            </View>
+          <View style={styles.emptyContainer}>
+            <Text variant="bodyMedium">{i18n.t("noExercisesFound")}</Text>
+          </View>
         )}
       />
 
       <FAB
         icon="plus"
-        label={i18n.t('addCustom')}
+        label={i18n.t("addCustom")}
         style={styles.fab}
         onPress={() => router.push(`/add-exercise`)}
       />
@@ -98,8 +111,8 @@ const styles = StyleSheet.create({
   listContent: { paddingBottom: 80 },
   emptyContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 50,
   },
   sectionHeaderContainer: {
@@ -108,7 +121,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   sectionHeaderText: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
-  fab: { position: 'absolute', margin: 16, right: 0, bottom: 0 },
+  fab: { position: "absolute", margin: 16, right: 0, bottom: 0 },
 });

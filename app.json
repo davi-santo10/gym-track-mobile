@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Gym Track Mobile",
+    "name": "Saint Tracker",
     "slug": "gym-track-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -22,7 +22,11 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.espiritosanto.gymtrackmobile",
-      "googleServicesFile": "./google-services.json"
+      "permissions": [
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_EXTERNAL_STORAGE"
+      ],
+      "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "bundler": "metro",
@@ -41,15 +45,13 @@
         }
       ],
       [
-        "@react-native-firebase/app",
+        "expo-build-properties",
         {
           "android": {
-            "googleServicesFile": "./google-services.json"
+            "enableProguardInReleaseBuilds": true,
+            "usesCleartextTraffic": false
           }
         }
-      ],
-      [
-        "@react-native-firebase/auth"
       ]
     ],
     "experiments": {

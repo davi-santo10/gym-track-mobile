@@ -161,7 +161,6 @@ export default function ActiveWorkoutScreen() {
             progress:
               setProgress?.map((set) => ({
                 reps: parseInt(set.reps) || 0,
-                // Convert display weight to storage weight (kg) when saving
                 weight: getStorageWeight(parseFloat(set.weight) || 0),
                 duration: 0,
                 completed: set.completed,
@@ -173,7 +172,6 @@ export default function ActiveWorkoutScreen() {
       duration: workoutSummary.duration,
     });
 
-    // Set the workout summary for the HomeScreen modal
     setLastWorkoutSummary({
       id: newLogId,
       duration: workoutSummary.duration,

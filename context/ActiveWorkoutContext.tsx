@@ -220,7 +220,7 @@ export const ActiveWorkoutProvider = ({
 
             return {
               reps: exercise.reps || "",
-              weight: displayWeight,
+              weight: "", // Start with empty weight field
               completed: false,
             };
           }) as SetProgress[];

@@ -1,4 +1,3 @@
-import { useAuth } from "@/context/AuthContext";
 import { useRoutines } from "@/context/RoutinesContext";
 import { useSettings } from "@/context/SettingsContext";
 import { useWorkoutLog } from "@/context/WorkoutLogContext";
@@ -11,10 +10,8 @@ import React from "react";
 import { Alert, Linking, ScrollView, StyleSheet, View } from "react-native";
 import {
   Appbar,
-  Avatar,
   Card,
   Divider,
-  IconButton,
   List,
   Modal,
   Portal,
@@ -25,7 +22,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NotificationSettingsScreen } from "./NotificationSettingsScreen";
 import { UnitsSettingsScreen } from "./UnitsSettingsScreen";
-import { ProfileScreen } from "./profile/ProfileScreen";
 
 const I18N_STORAGE_KEY = "my-gym-tracker-i18n-locale";
 
@@ -37,7 +33,7 @@ const AVAILABLE_LANGUAGES = [
   // { code: "fr", name: "French", nativeName: "Français" },
 ];
 
-type ScreenType = "main" | "notifications" | "units" | "profile";
+type ScreenType = "main" | "notifications" | "units";
 
 export function SettingsScreen() {
   const [locale, setLocale] = React.useState(i18n.locale);
@@ -46,7 +42,7 @@ export function SettingsScreen() {
   const { settings, isLoaded } = useSettings();
   const { logs } = useWorkoutLog();
   const { routines } = useRoutines();
-  const { user, userProfile } = useAuth();
+
   const theme = useTheme();
 
   // Show loading state while settings are loading
@@ -77,10 +73,6 @@ export function SettingsScreen() {
 
   if (currentScreen === "units") {
     return <UnitsSettingsScreen onBack={() => setCurrentScreen("main")} />;
-  }
-
-  if (currentScreen === "profile") {
-    return <ProfileScreen />;
   }
 
   const getCurrentLanguageName = () => {
@@ -221,7 +213,7 @@ export function SettingsScreen() {
   };
 
   const handleReportBug = () => {
-    const bugReportUrl = "https://your-bug-report-form-url.com"; // You can replace this with your actual form URL
+    const bugReportUrl = "https://docs.google.com/forms/d/e/1FAIpQLSc7WukV1HllIrx7YB31wXSPIWATs8-Vc8HqBySNYMPZuGusGQ/viewform?usp=sharing&ouid=105010301337217305064"; // You can replace this with your actual form URL
     Alert.alert(
       String(i18n.t("reportBug")),
       String(i18n.t("reportBugDescription")),
@@ -330,22 +322,6 @@ export function SettingsScreen() {
 
       <Appbar.Header>
         <Appbar.Content title={String(i18n.t("more"))} />
-        {user && (
-          <IconButton
-            icon={() => (
-              <Avatar.Text
-                size={32}
-                label={
-                  userProfile?.displayName?.charAt(0).toUpperCase() ||
-                  userProfile?.email?.charAt(0).toUpperCase() ||
-                  "U"
-                }
-              />
-            )}
-            onPress={() => setCurrentScreen("profile")}
-            style={{ marginRight: 8 }}
-          />
-        )}
       </Appbar.Header>
 
       <ScrollView
